@@ -234,9 +234,6 @@ def ClosestValueFinder(actual, table):
 
 class CodingTable(object):
     kStopFrameIndex = 15
-    kParameterGain = 'gain'
-    kParameterPitch = 'pitch'
-    kParameterRepeat= 'repeat'
 
     k1 = ( -0.97850, -0.97270, -0.97070, -0.96680, -0.96290, -0.95900,
     -0.95310, -0.94140, -0.93360, -0.92580, -0.91600, -0.90620, -0.89650,
@@ -407,16 +404,17 @@ class FrameData(object):
 
     def parametersWithTranslate(self, translate):
         parameters = {}
-        parameters[CodingTable.kParameterGain] = self.parameterizedValueForRMS(self.reflector.rms, translate=translate)
+        parameters["kParameterGain"] = self.parameterizedValueForRMS(self.reflector.rms, translate=translate)
     
-        if parameters[CodingTable.kParameterGain] > 0:
-            parameters[CodingTable.kParameterRepeat] = self.parameterizedValueForRepeat(self.repeat)
-            parameters[CodingTable.kParameterPitch] = self.parameterizedValueForPitch(self.pitch, translate)
+        if parameters["kParameterGain"] > 0:
+            parameters["kParameterRepeat"] = self.parameterizedValueForRepeat(self.repeat)
+            parameters["kParameterPitch"] = self.parameterizedValueForPitch(self.pitch, translate)
 
-            if not parameters[CodingTable.kParameterRepeat]:
+            if not parameters["kParameterRepeat"]:
                 ks = self.kParametersFrom(1, 4, translate=translate)
-                parameters.update(ks)
-                if ( parameters[CodingTable.kParameterPitch] != 0  and (self.decodeFrame or self.reflector.isVoiced) ):
+                if ks is not None:
+                    parameters.update(ks)
+                if ( parameters["kParameterPitch"] != 0  and (self.decodeFrame or self.reflector.isVoiced) ):
                     ks = self.kParametersFrom(5, 10, translate=translate)
                     parameters.update(ks)
     
@@ -425,7 +423,7 @@ class FrameData(object):
     def setParameter(self, parameter, value = None, translatedValue = None):
         self.parameters = None
         
-        if parameter == CodingTable.kParameterGain:
+        if parameter == 'kParameterGain':
             if translatedValue is None:
                 index = int(value)
                 rms = CodingTable.rms(index)
@@ -433,10 +431,10 @@ class FrameData(object):
                 rms = translatedValue
             self.reflector.rms = float(rms)
                 
-        elif parameter == CodingTable.kParameterRepeat:
+        elif parameter == "kParameterRepeat":
             self.repeat = bool(value)
 
-        elif parameter == CodingTable.kParameterPitch:
+        elif parameter == "kParameterPitch":
             if translatedValue is None:
                 pitch = CodingTable.pitch[int(value)]
             else:
@@ -643,7 +641,7 @@ class Processor(object):
             frames.append(frameData)
         
         if userSettings.includeExplicitStopFrame:
-            frames.append(FrameData.stopFrame)
+            frames.append(FrameData.stopFrame())
 
         self.frames = frames
 
@@ -665,11 +663,11 @@ class Processor(object):
 
 class BitHelpers(object):
     @classmethod
-    def valueToBinary(value, bits):
+    def valueToBinary(cls, value, bits):
         return format(value, "0{}b".format(bits))
 
     @classmethod
-    def valueForBinary(binary):
+    def valueForBinary(cls, binary):
         return int(binary, 2)
 
 class FrameDataBinaryEncoder(object):
@@ -678,10 +676,11 @@ class FrameDataBinaryEncoder(object):
         bits = CodingTable.bits
         binary = ""
         for parameters in parametersList:
-            parametersList = CodingTable.parameters()
-            for (param_name, idx) in zip(parametersList, range(len(parametersList))):
+            params = CodingTable.parameters()
+            for (param_name, idx) in zip(params, range(len(params))):
                 if param_name not in parameters:
                     break
+                print parameters, param_name
                 value = parameters[param_name]
                 binaryValue = BitHelpers.valueToBinary(value, bits[idx])
                 binary += binaryValue
@@ -702,9 +701,9 @@ class BitPacker(object):
     @classmethod
     def pack(cls, frameData):
         print frameData
-        parametersList = frameData.parameters()
-        print parametersList
-        #binary = FrameDataBinaryEncoder.process(parametersList)
+        parametersList = [ x.parameters() for x in frameData ]
+        binary = FrameDataBinaryEncoder.process(parametersList)
+        print binary
         #hexform = HexConverter.process(binary)
         #reverse = NibbleBitReverser.process(hexform)
         #switched = NibbleSwitcher.process(reverse)
@@ -717,5 +716,4 @@ class BitPacker(object):
 b=Buffer.fromWave('/Users/peter/Downloads/BlueWizard-master/unprocessed/ces.wav')
 x=Processor(b)
 print "done"
-for frame in x.frames:
-    print BitPacker.pack(frame)
+BitPacker.pack(x.frames)
