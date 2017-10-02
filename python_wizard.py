@@ -222,18 +222,21 @@ class PitchEstimator(object):
 def ClosestValueFinder(actual, table):
     if actual < table[0]:
         return 0
-    for i in range(0, len(table)):
+    for i in range(1, len(table)):
         previous = table[ i - 1 ]
-        if (table[i] - actual) < (actual - previous):
-            return i
-        else:
-            return i-1
+        if table[i] > actual:
+            if (table[i] - actual) < (actual - previous):
+                return i
+            else:
+                return i-1
 
     return len(table)-1
 
 class CodingTable(object):
     kStopFrameIndex = 15
     kParameterGain = 'gain'
+    kParameterPitch = 'pitch'
+    kParameterRepeat= 'repeat'
 
     k1 = ( -0.97850, -0.97270, -0.97070, -0.96680, -0.96290, -0.95900,
     -0.95310, -0.94140, -0.93360, -0.92580, -0.91600, -0.90620, -0.89650,
@@ -373,6 +376,7 @@ class FrameData(object):
         reflector = Reflector()
         reflector.setRms ( CodingTable.rms[CodingTable.kStopFrameIndex] )
         fd = cls(reflector=reflector, pitch=0, repeat=False)
+        fd.decodeFrame = False
         fd.stopFrame = True
         return fd
 
@@ -386,7 +390,8 @@ class FrameData(object):
     def __init__(self, reflector, pitch, repeat):
         self.reflector = reflector
         self.pitch = pitch
-        print pitch
+        self.stopFrame = False
+        self.decodeFrame = False
         self.repeat = repeat
         self._parameters = None
 
@@ -411,7 +416,7 @@ class FrameData(object):
             if not parameters[CodingTable.kParameterRepeat]:
                 ks = self.kParametersFrom(1, 4, translate=translate)
                 parameters.update(ks)
-                if ( parameters[CodingTable.kParameterPitch] != 0  and (self.isForDecoding or self.reflector.isVoiced) ):
+                if ( parameters[CodingTable.kParameterPitch] != 0  and (self.decodeFrame or self.reflector.isVoiced) ):
                     ks = self.kParametersFrom(5, 10, translate=translate)
                     parameters.update(ks)
     
@@ -456,7 +461,6 @@ class FrameData(object):
 
     def parameterizedValueForRMS(self, rms, translate):
         index = ClosestValueFinder(rms, table=CodingTable.rms)
-        print rms, index
         if translate:
             return CodingTable.rms[index]
         else:
@@ -464,7 +468,7 @@ class FrameData(object):
 
     def parameterizedValueForPitch(self, pitch,translate):
         index = 0
-        if self.isForDecoding:
+        if self.decodeFrame:
             if pitch==0:
                 return 0
             if userSettings.overridePitch:
@@ -494,7 +498,7 @@ class FrameData(object):
         return bool(repeat)
 
     def kParametersFrom(self, frm, to, translate):
-        if self.isStopFrame: return None
+        if self.stopFrame: return None
         parameters = {}
         for k in range(frm, to+1):
             key = self.parameterKeyForK(k)
@@ -697,6 +701,7 @@ class BitPacker(object):
 
     @classmethod
     def pack(cls, frameData):
+        print frameData
         parametersList = frameData.parameters()
         print parametersList
         #binary = FrameDataBinaryEncoder.process(parametersList)
