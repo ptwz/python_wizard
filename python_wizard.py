@@ -263,7 +263,6 @@ class CodingTable(object):
 
     pitch = ( 0.0, 1.0, 16.0, 17.0, 18.0, 19.0, 20.0, 21.0, 22.0, 23.0, 24.0, 25.0, 26.0, 27.0, 28.0, 29.0, 30.0, 31.0, 32.0, 33.0, 34.0, 35.0, 36.0, 36.0, 38.0, 39.0, 40.0, 41.0, 42.0, 44.0, 46.0, 48.0, 50.0, 52.0, 53.0, 56.0, 58.0, 60.0, 62.0, 65.0, 67.0, 70.0, 72.0, 75.0, 78.0, 80.0, 83.0, 86.0, 89.0, 93.0, 97.0, 100.0, 104.0, 108.0, 113.0, 117.0, 121.0, 126.0, 131.0, 135.0, 140.0, 146.0, 151.0, 157)
 
-    bits = ( 4, 1, 6, 5, 5, 4, 4, 4, 4, 4, 3, 3, 3)
     
     @classmethod
     def kSizeFor(cls, k):
@@ -302,6 +301,7 @@ class CodingTable(object):
              'kParameterK10'
               ]
 
+    bits = ( 4, 1, 6, 5, 5, 4, 4, 4, 4, 4, 3, 3, 3)
 
 class Reflector(object):
     kNumberOfKParameters = 11
@@ -504,7 +504,7 @@ class FrameData(object):
         return copy.deepcopy(parameters)
 
     def parameterKeyForK(self, k):
-        return "k{}".format(int(k))
+        return "kParameterK{}".format(int(k))
 
 class HammingWindow(object):
     @classmethod
@@ -682,6 +682,7 @@ class FrameDataBinaryEncoder(object):
                     break
                 value = parameters[param_name]
                 binaryValue = BitHelpers.valueToBinary(value, bits[idx])
+                print  "param_name={} idx={} value={} binaryValue={}".format(param_name, idx, value, binaryValue)
                 binary += binaryValue
         return cls.nibblesFrom(binary)
 
@@ -697,6 +698,10 @@ class FrameDataBinaryEncoder(object):
 class HexConverter(object):
     @classmethod
     def process(cls, nibbles):
+        '''
+        Creates nibble swapped, reversed data bytestream as hex value list.
+        Used to be NibbleBitReverser, NibbleSwitcher and HexConverter
+        '''
         result = []
         for u,l in zip(nibbles[0::2], nibbles[1::2]):
             raw = (u+l)[::-1]
