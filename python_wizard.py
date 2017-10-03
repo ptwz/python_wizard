@@ -680,7 +680,6 @@ class FrameDataBinaryEncoder(object):
             for (param_name, idx) in zip(params, range(len(params))):
                 if param_name not in parameters:
                     break
-                print parameters, param_name
                 value = parameters[param_name]
                 binaryValue = BitHelpers.valueToBinary(value, bits[idx])
                 binary += binaryValue
@@ -692,8 +691,18 @@ class FrameDataBinaryEncoder(object):
         while len(binary) >= 4:
             nibble = binary[0:4]
             binary = binary[4:]
-            nibbles.append(binary)
+            nibbles.append(nibble)
         return nibbles
+
+class HexConverter(object):
+    @classmethod
+    def process(cls, nibbles):
+        result = []
+        for u,l in zip(nibbles[0::2], nibbles[1::2]):
+            raw = (u+l)[::-1]
+            data = int(raw, base=2)
+            result.append(hex(data))
+        return result
 
 class BitPacker(object):
     delimiter = ","
@@ -703,8 +712,8 @@ class BitPacker(object):
         print frameData
         parametersList = [ x.parameters() for x in frameData ]
         binary = FrameDataBinaryEncoder.process(parametersList)
-        print binary
-        #hexform = HexConverter.process(binary)
+        hexform = HexConverter.process(binary)
+        print ", ".join(hexform)
         #reverse = NibbleBitReverser.process(hexform)
         #switched = NibbleSwitcher.process(reverse)
         #output = HexFormatter.process(switched)
