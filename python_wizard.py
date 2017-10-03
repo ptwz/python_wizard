@@ -4,9 +4,9 @@ from scipy import signal
 from scipy.io import wavfile
 from collections import OrderedDict
 import copy
+import logging
 
 class userSettings(object):
-    preEmphasis = True
     pitchValue = 0
     unvoicedThreshold = 0.3
     windowWidth = 2
@@ -21,7 +21,7 @@ class userSettings(object):
     minimumPitchInHZ = 50
     frameRate = 25
     subMultipleThreshold = 0.9
-    
+
 
 class Buffer(object):
     @classmethod
@@ -30,7 +30,7 @@ class Buffer(object):
             return cls(size=orig.size, sampleRate=orig.sampleRate, samples=orig.samples, start=orig.start, end=orig.end)
         else:
             return cls(size=orig.size, sampleRate=orig.sampleRate, samples=applyFilter(orig.samples), start=orig.start, end=orig.end)
-            
+
     @classmethod
     def fromWave(cls, filename):
         (rate,data)=wavfile.read(filename)
@@ -47,6 +47,8 @@ class Buffer(object):
         elif data.dtype.name == 'uint8':
             d2 -= 128
             d2 /= 127
+
+        assert(max(d2) <= 1)
 
         if downsample_factor>1:
             data = sp.signal.decimate(d2, int(downsample_factor), zero_phase=True)
@@ -93,6 +95,7 @@ class Buffer(object):
         return sp.square(self.samples[self.start:self.end]).sum()
 
     def getCoefficientsFor(self):
+        logging.debug("getCoefficientsFor max(self.samples)={}".format(max(self.samples))(
         coefficients = [0]*11
         for i in range(0,11):
             coefficients[i] = self.aForLag(i)
@@ -170,7 +173,7 @@ class PitchEstimator(object):
         found = False
 
         estimate = self.interpolated()
-        # NaN check???!! if (estimate != estimate) return 0.0; 
+        # NaN check???!! if (estimate != estimate) return 0.0;
         while not found and maximumMultiple >= 1:
             subMultiplesAreStrong = True
             for i in range(0, maximumMultiple):
@@ -263,7 +266,7 @@ class CodingTable(object):
 
     pitch = ( 0.0, 1.0, 16.0, 17.0, 18.0, 19.0, 20.0, 21.0, 22.0, 23.0, 24.0, 25.0, 26.0, 27.0, 28.0, 29.0, 30.0, 31.0, 32.0, 33.0, 34.0, 35.0, 36.0, 36.0, 38.0, 39.0, 40.0, 41.0, 42.0, 44.0, 46.0, 48.0, 50.0, 52.0, 53.0, 56.0, 58.0, 60.0, 62.0, 65.0, 67.0, 70.0, 72.0, 75.0, 78.0, 80.0, 83.0, 86.0, 89.0, 93.0, 97.0, 100.0, 104.0, 108.0, 113.0, 117.0, 121.0, 126.0, 131.0, 135.0, 140.0, 146.0, 151.0, 157)
 
-    
+
     @classmethod
     def kSizeFor(cls, k):
         if k>10:
@@ -327,7 +330,7 @@ class Reflector(object):
     @classmethod
     def translateCoefficients(cls, r, numberOfSamples):
         '''Leroux Guegen algorithm for finding K's'''
-        
+
         k = [0.0] * 11;
         b = [0.0] * 11;
         d = [0.0] * 12;
@@ -335,23 +338,22 @@ class Reflector(object):
         k[1] = -r[1] / r[0]
         d[1] = r[1]
         d[2] = r[0] + (k[1] * r[1])
-        
+
         for i in range(2, 11):
             y = r[i]
             b[1] = y
-        
+
             for j in range(1, i):
                 b[j + 1] = d[j] + (k[j] * y)
                 y = y + (k[j] * d[j])
                 d[j] = b[j]
-        
+
             k[i] = -y / d[i]
             d[i + 1] = d[i] + (k[i] * y)
             d[i] = b[i]
-        
         rms = cls.formattedRMS( d[11], numberOfSamples )
         return cls(k=k, rms=rms, limitRMS=True )
-    
+
     def setRms(self, rms):
         self.rms = rms
 
@@ -383,7 +385,7 @@ class FrameData(object):
         fd = cls(reflector=reflector, pitch=0, repeat=False)
         fd.decodeFrame = True
         return fd
-    
+
     def __init__(self, reflector, pitch, repeat):
         self.reflector = reflector
         self.pitch = pitch
@@ -405,7 +407,7 @@ class FrameData(object):
     def parametersWithTranslate(self, translate):
         parameters = {}
         parameters["kParameterGain"] = self.parameterizedValueForRMS(self.reflector.rms, translate=translate)
-    
+
         if parameters["kParameterGain"] > 0:
             parameters["kParameterRepeat"] = self.parameterizedValueForRepeat(self.repeat)
             parameters["kParameterPitch"] = self.parameterizedValueForPitch(self.pitch, translate)
@@ -417,12 +419,12 @@ class FrameData(object):
                 if ( parameters["kParameterPitch"] != 0  and (self.decodeFrame or self.reflector.isVoiced) ):
                     ks = self.kParametersFrom(5, 10, translate=translate)
                     parameters.update(ks)
-    
+
         return copy.deepcopy(parameters)
 
     def setParameter(self, parameter, value = None, translatedValue = None):
         self.parameters = None
-        
+
         if parameter == 'kParameterGain':
             if translatedValue is None:
                 index = int(value)
@@ -430,7 +432,7 @@ class FrameData(object):
             else:
                 rms = translatedValue
             self.reflector.rms = float(rms)
-                
+
         elif parameter == "kParameterRepeat":
             self.repeat = bool(value)
 
@@ -534,7 +536,7 @@ class PreEmphasizer(object):
 
     @classmethod
     def scaleBuffer(cls, buf, preEnergy, postEnergy):
-        scale = sp.square(preEnergy / postEnergy)
+        scale = sp.sqrt(preEnergy / postEnergy)
 
         for i in range(0, len(buf)):
             buf.samples[i] *= scale
@@ -544,7 +546,7 @@ class RMSNormalizer(object):
     @classmethod
     def normalize(cls, frameData, Voiced):
         maximum = max( [ x.rms for x in frameData if x.isVoiced() == Voiced ] )
-    
+
         if maximum <= 0:
             return
 
@@ -557,7 +559,7 @@ class RMSNormalizer(object):
         for frame in FrameData:
             if not frame.reflector.isVoiced() == Voiced:
                 frame.reflector.rms *= scale
-    
+
     @classmethod
     def applyUnvoicedMultiplier(cls, frameData):
         mutiplier = cls.unvoicedRMSMultiplier()
@@ -610,17 +612,17 @@ class Processor(object):
         self.mainBuffer = buf
         self.pitchTable = None
         self.pitchBuffer = Buffer.copy(buf)
-        
+
         if userSettings.preEmphasis:
             PreEmphasizer.processBuffer(buf)
-        
+
         self.pitchTable = {}
         wrappedPitch = False
         if userSettings.overridePitch:
             wrappedPitch = userSettings.pitchValue
         else:
             self.pitchTable = self.pitchTableForBuffer(self.pitchBuffer)
-        
+
         coefficients = sp.zeros(11)
 
         segmenter = Segmenter(buf=self.mainBuffer, windowWidth=userSettings.windowWidth)
@@ -630,7 +632,7 @@ class Processor(object):
             HammingWindow.processBuffer(cur_buf)
             coefficients = cur_buf.getCoefficientsFor()
             reflector = Reflector.translateCoefficients(coefficients, cur_buf.size)
-            
+
             if wrappedPitch:
                 pitch = int(wrappedPitch)
             else:
@@ -639,7 +641,7 @@ class Processor(object):
             frameData = FrameData(reflector, pitch, repeat=False)
 
             frames.append(frameData)
-        
+
         if userSettings.includeExplicitStopFrame:
             frames.append(FrameData.stopFrame())
 
@@ -682,7 +684,7 @@ class FrameDataBinaryEncoder(object):
                     break
                 value = parameters[param_name]
                 binaryValue = BitHelpers.valueToBinary(value, bits[idx])
-                print  "param_name={} idx={} value={} binaryValue={}".format(param_name, idx, value, binaryValue)
+                logging.debug("param_name={} idx={} value={} binaryValue={}".format(param_name, idx, value, binaryValue))
                 binary += binaryValue
         return cls.nibblesFrom(binary)
 
@@ -714,7 +716,6 @@ class BitPacker(object):
 
     @classmethod
     def pack(cls, frameData):
-        print frameData
         parametersList = [ x.parameters() for x in frameData ]
         binary = FrameDataBinaryEncoder.process(parametersList)
         hexform = HexConverter.process(binary)
