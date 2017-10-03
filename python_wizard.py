@@ -13,7 +13,7 @@ class userSettings(object):
     normalizeUnvoicedRMS = False
     normalizeVoicedRMS = False
     includeExplicitStopFrame = True
-    preEmphasis = False
+    preEmphasis = True
     preEmphasisAlpha = -0.9373
     overridePitch = False
     pitchOffset = 0
@@ -521,9 +521,9 @@ class PreEmphasizer(object):
         alpha = cls.alpha()
         unmodifiedPreviousSample = buf.samples[0]
         tempSample = None
-        for i in range(1, len(buffer)):
-            tempSample = buffer.sample[i]
-            buffer.samples[i] += (alpha * unmodifiedPreviousSample)
+        for i in range(1, buf.size):
+            tempSample = buf.samples[i]
+            buf.samples[i] += (alpha * unmodifiedPreviousSample)
             unmodifiedPreviousSample = tempSample
 
         cls.scaleBuffer(buf, preEnergy, buf.energy())
@@ -533,11 +533,11 @@ class PreEmphasizer(object):
         return userSettings.preEmphasisAlpha
 
     @classmethod
-    def scaleBuffer(buf, preEnergy, postEnergy):
+    def scaleBuffer(cls, buf, preEnergy, postEnergy):
         scale = sp.square(preEnergy / postEnergy)
 
         for i in range(0, len(buf)):
-            buf.values[i] *= scale
+            buf.samples[i] *= scale
 
 
 class RMSNormalizer(object):
@@ -706,7 +706,7 @@ class HexConverter(object):
         for u,l in zip(nibbles[0::2], nibbles[1::2]):
             raw = (u+l)[::-1]
             data = int(raw, base=2)
-            result.append(hex(data))
+            result.append("0x{:02X}".format(data))
         return result
 
 class BitPacker(object):
