@@ -5,6 +5,7 @@ from scipy.io import wavfile
 from collections import OrderedDict
 import copy
 import logging
+import sys
 
 class userSettings(object):
     pitchValue = 0
@@ -22,6 +23,15 @@ class userSettings(object):
     frameRate = 25
     subMultipleThreshold = 0.9
 
+    @classmethod
+    def import_from_argparse(cls, raw):
+        v = vars(raw)
+        print dir(cls)
+        for key in v:
+            if key=='pitchRange':
+                (cls.minimumPitchInHZ, cls.maximumPitchInHZ) = v[key].split(",")
+            else:
+                cls.__dict__[key] = v[key]
 
 class Buffer(object):
     @classmethod
@@ -95,7 +105,7 @@ class Buffer(object):
         return sp.square(self.samples[self.start:self.end]).sum()
 
     def getCoefficientsFor(self):
-        logging.debug("getCoefficientsFor max(self.samples)={}".format(max(self.samples))(
+        logging.debug("getCoefficientsFor max(self.samples)={}".format(max(self.samples)))
         coefficients = [0]*11
         for i in range(0,11):
             coefficients[i] = self.aForLag(i)
@@ -727,8 +737,71 @@ class BitPacker(object):
         #return cls.delimiter.join(cls.output)
 
 
+import argparse
 
-b=Buffer.fromWave('/Users/peter/Downloads/BlueWizard-master/unprocessed/ces.wav')
+import argparse
+parser = argparse.ArgumentParser()
+parser.add_argument("-u", "--unvoicedThreshold", 
+    help="Unvoiced frame threshold", 
+    action="store", 
+    default=0.3, 
+    type=float)
+parser.add_argument("-w", "--windowWidth", 
+    help="Window width in frames", 
+    action="store", 
+    default=2, 
+    type=int)
+parser.add_argument("-U", "--normalizeUnvoicedRMS", 
+    help="Normalize unvoiced frame RMS", 
+    action="store_true")
+parser.add_argument("-V", "--normalizeVoicedRMS", 
+    help="Normalize voiced frame RMS", 
+    action="store_true")
+parser.add_argument("-S", "--includeExplicitStopFrame", 
+    help="Create explicit stop frame (needed e.g. for Talkie)", 
+    action="store_true")
+parser.add_argument("-p", "--preEmphasis", 
+    help="Pre emphasize sound to improve quality of translation", 
+    action="store_true")
+parser.add_argument("-a", "--preEmphasisAlpha", 
+    help="Emphasis coefficient", 
+    type=float,
+    default=-0.9373,
+    action="store")
+parser.add_argument("-d", "--debug", 
+    help="Enable (lots) of debug output",
+    action="store_true")
+parser.add_argument("-r", "--pitchRange",
+    help="Comma separated range of available voice pitch in Hz. Default: 50,500",
+    default="50,500")
+parser.add_argument("-f", "--frameRate",
+    default=25,
+    type=int)
+parser.add_argument("-m", "--subMultipleThreshold",
+    help="sub-multiple threshold",
+    default=0.9,
+    type=float)
+parser.add_argument("filename", 
+    help="File name of a .wav file to be processed",
+    action="store")
+#parser.add_argument("-", "--preEmphasis", 
+#    help="Pre emphasize sound to improve quality of translation", 
+#    action="store_true")
+#parser.add_argument("-p", "--preEmphasisAlpha", 
+#    help="Emphasis coefficient", 
+#    type=float,
+#    default=-0.9373,
+#    action="store")
+
+args = parser.parse_args()
+
+print vars(args)
+userSettings.import_from_argparse(args)
+exit()
+if args.debug:
+    logging.basicConfig(level=logging.DEBUG)
+
+b=Buffer.fromWave(args.filename)
 x=Processor(b)
 print "done"
 BitPacker.pack(x.frames)
