@@ -127,14 +127,10 @@ class Buffer(object):
                 coefficients[lag] = 0.0
                 continue
 
-            s = 0
-            sumOfSquaresBeginning = 0
-            sumOfSquaresEnding = 0
-            samples = self.size - lag
-            for i in range(0, samples):
-                s += self.samples[i] * self.samples[i+lag]
-                sumOfSquaresBeginning += self.samples[i] ** 2
-                sumOfSquaresEnding += self.samples[i+lag] ** 2
+            s = sum(self.samples[:-lag] * self.samples[lag:])
+            sumOfSquaresBeginning = sum(self.samples[:-lag]**2)
+            sumOfSquaresEnding = sum(self.samples[lag:]**2)
+
             coefficients[lag] = s / sp.sqrt(sumOfSquaresBeginning * sumOfSquaresEnding)
         return coefficients
 
@@ -213,12 +209,14 @@ class PitchEstimator(object):
     def bestPeriod(self):
         if self._bestPeriod is None:
             bestPeriod = self.minimumPeriod()
-            startPeriod = bestPeriod + 1
             maximumPeriod = self.maximumPeriod()
 
-            for period in range(startPeriod, maximumPeriod):
-                if (self._normalizedCoefficients[period] > self._normalizedCoefficients[bestPeriod]):
-                    bestPeriod = period
+            bestPeriod = self._normalizedCoefficients.index(max(self._normalizedCoefficients))
+            if bestPeriod < self.minimumPeriod():
+                bestPeriod = self.minimumPeriod()
+            if bestPeriod > maximumPeriod:
+                bestPeriod = maximumPeriod
+
             self._bestPeriod = int(bestPeriod)
 
         return self._bestPeriod
