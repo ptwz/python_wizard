@@ -59,7 +59,8 @@ class Buffer(object):
         assert(max(d2) <= 1)
 
         if downsample_factor>1:
-            data = sp.signal.decimate(d2, int(downsample_factor), zero_phase=True)
+            data = sp.signal.resample(d2, int(len(d2)/downsample_factor))
+            logging.debug("downsampled: was {} samples, now {} samples".format(len(d2), len(data)))
         else:
             data = d2
 
