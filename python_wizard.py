@@ -521,11 +521,16 @@ class FrameData(object):
         return "kParameterK{}".format(int(k))
 
 class HammingWindow(object):
+    _windows = {}
+
     @classmethod
     def processBuffer(cls, buf):
-        for i in range(0, len(buf)):
-            window =  0.54 - 0.46 * sp.cos(2 * sp.pi * i / (len(buf) - 1))
-            buf.samples[i] *= window
+        l = len(buf)
+        if l not in cls._windows:
+            logging.debug("HammingWindow: Generate window for len {}".format(l))
+            cls._windows[l] = [  (0.54 - 0.46 * sp.cos(2 * sp.pi * i / (l - 1))) for i in range(l)]
+
+        buf.samples *= cls._windows[l]
 
 class PreEmphasizer(object):
     @classmethod
@@ -535,10 +540,10 @@ class PreEmphasizer(object):
         alpha = cls.alpha()
         unmodifiedPreviousSample = buf.samples[0]
         tempSample = None
-        for i in range(1, buf.size):
-            tempSample = buf.samples[i]
-            buf.samples[i] += (alpha * unmodifiedPreviousSample)
-            unmodifiedPreviousSample = tempSample
+
+        first_sample = buf.samples[0]
+        buf.samples = buf.samples[1:] + (buf.samples[:-1] * alpha)
+        buf.samples = sp.insert(buf.samples, 0, first_sample)
 
         cls.scaleBuffer(buf, preEnergy, buf.energy())
 
@@ -550,8 +555,7 @@ class PreEmphasizer(object):
     def scaleBuffer(cls, buf, preEnergy, postEnergy):
         scale = sp.sqrt(preEnergy / postEnergy)
 
-        for i in range(0, len(buf)):
-            buf.samples[i] *= scale
+        buf.samples *= scale
 
 
 class RMSNormalizer(object):
