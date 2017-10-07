@@ -23,15 +23,13 @@ class userSettings(object):
     frameRate = 25
     subMultipleThreshold = 0.9
 
-    @classmethod
-    def import_from_argparse(cls, raw):
+    def import_from_argparse(self, raw):
         v = vars(raw)
-        print dir(cls)
         for key in v:
             if key=='pitchRange':
-                (cls.minimumPitchInHZ, cls.maximumPitchInHZ) = v[key].split(",")
+                (self.minimumPitchInHZ, self.maximumPitchInHZ) = [ int(x) for x in v[key].split(",") ]
             else:
-                cls.__dict__[key] = v[key]
+                self.__setattr__(key,v[key])
 
 class Buffer(object):
     @classmethod
@@ -784,24 +782,15 @@ parser.add_argument("-m", "--subMultipleThreshold",
 parser.add_argument("filename", 
     help="File name of a .wav file to be processed",
     action="store")
-#parser.add_argument("-", "--preEmphasis", 
-#    help="Pre emphasize sound to improve quality of translation", 
-#    action="store_true")
-#parser.add_argument("-p", "--preEmphasisAlpha", 
-#    help="Emphasis coefficient", 
-#    type=float,
-#    default=-0.9373,
-#    action="store")
 
 args = parser.parse_args()
 
-print vars(args)
-userSettings.import_from_argparse(args)
+settings = userSettings()
+settings.import_from_argparse(args)
 exit()
 if args.debug:
     logging.basicConfig(level=logging.DEBUG)
 
 b=Buffer.fromWave(args.filename)
 x=Processor(b)
-print "done"
 BitPacker.pack(x.frames)
