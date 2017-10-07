@@ -1,11 +1,13 @@
 #import numpy as sp
-import scipy as sp
 from scipy import signal
 from scipy.io import wavfile
-from collections import OrderedDict
+from collections import OrderedDict, namedtuple
+import scipy as sp
 import copy
 import logging
 import sys
+import os
+import re
 
 class userSettings(object):
     pitchValue = 0
@@ -22,6 +24,7 @@ class userSettings(object):
     minimumPitchInHZ = 50
     frameRate = 25
     subMultipleThreshold = 0.9
+    outputFormat = "arduino"
 
     def import_from_argparse(self, raw):
         v = vars(raw)
@@ -30,6 +33,8 @@ class userSettings(object):
                 (self.minimumPitchInHZ, self.maximumPitchInHZ) = [ int(x) for x in v[key].split(",") ]
             else:
                 self.__setattr__(key,v[key])
+
+settings = userSettings()
 
 class Buffer(object):
     @classmethod
@@ -191,7 +196,7 @@ class PitchEstimator(object):
                     curr = self._normalizedCoefficients[subMultiplePeriod]
                 except IndexError:
                     curr = None
-                if (curr is not None) and ( curr < userSettings.subMultipleThreshold * self._normalizedCoefficients[bestPeriod]):
+                if (curr is not None) and ( curr < settings.subMultipleThreshold * self._normalizedCoefficients[bestPeriod]):
                     subMultiplesAreStrong = False
             if subMultiplesAreStrong:
                 estimate /= maximumMultiple
@@ -219,16 +224,16 @@ class PitchEstimator(object):
         return self._bestPeriod
 
     def maxPitchInHZ(self):
-        return userSettings.maximumPitchInHZ
+        return settings.maximumPitchInHZ
 
     def minPitchInHZ(self):
-        return userSettings.minimumPitchInHZ
+        return settings.minimumPitchInHZ
 
     def minimumPeriod(self):
-        return int(sp.floor(self.buf.sampleRate / userSettings.maximumPitchInHZ - 1))
+        return int(sp.floor(self.buf.sampleRate / settings.maximumPitchInHZ - 1))
 
     def maximumPeriod(self):
-        return int(sp.floor(self.buf.sampleRate / userSettings.minimumPitchInHZ + 1))
+        return int(sp.floor(self.buf.sampleRate / settings.minimumPitchInHZ + 1))
 
 
 def ClosestValueFinder(actual, table):
@@ -320,7 +325,7 @@ class Reflector(object):
 
     def __init__(self, k=None, rms=None, limitRMS=None):
         # TODO From config!!
-        self.unvoicedThreshold = userSettings.unvoicedThreshold
+        self.unvoicedThreshold = settings.unvoicedThreshold
         if (k is None):
             assert(rms is None)
             assert(limitRMS is None)
@@ -480,16 +485,16 @@ class FrameData(object):
         if self.decodeFrame:
             if pitch==0:
                 return 0
-            if userSettings.overridePitch:
-                index = int(userSettings.overridePitch)
+            if settings.overridePitch:
+                index = int(settings.overridePitch)
                 return CodingTable.pitch[index]
         elif self.reflector.isUnvoiced() or pitch==0:
             return 0
 
-        if userSettings.overridePitch:
+        if settings.overridePitch:
             offset = 0
         else:
-            offset = userSettings.pitchOffset
+            offset = settings.pitchOffset
 
         index = ClosestValueFinder(pitch, table=CodingTable.pitch)
 
@@ -541,7 +546,7 @@ class PreEmphasizer(object):
 
     @classmethod
     def alpha(cls):
-        return userSettings.preEmphasisAlpha
+        return settings.preEmphasisAlpha
 
     @classmethod
     def scaleBuffer(cls, buf, preEnergy, postEnergy):
@@ -578,19 +583,19 @@ class RMSNormalizer(object):
 
     @classmethod
     def maxRMSIndex(cls):
-        return userSettings.rmsLimit
+        return settings.rmsLimit
 
     @classmethod
     def maxUnvoicedRMSIndex(cls):
-        return userSettings.unvoicedRMSLimit
+        return settings.unvoicedRMSLimit
 
     @classmethod
     def unvoicedMultiplier(cls):
-        return userSettings.unvoicedRMSMultiplier
+        return settings.unvoicedRMSMultiplier
 
 class Segmenter(object):
     def __init__(self, buf, windowWidth):
-        milliseconds = userSettings.frameRate
+        milliseconds = settings.frameRate
         self.size = int(sp.ceil(buf.sampleRate / 1e3 * milliseconds))
         self.buf = buf
         self.windowWidth = windowWidth
@@ -622,19 +627,19 @@ class Processor(object):
         self.pitchTable = None
         self.pitchBuffer = Buffer.copy(buf)
 
-        if userSettings.preEmphasis:
+        if settings.preEmphasis:
             PreEmphasizer.processBuffer(buf)
 
         self.pitchTable = {}
         wrappedPitch = False
-        if userSettings.overridePitch:
-            wrappedPitch = userSettings.pitchValue
+        if settings.overridePitch:
+            wrappedPitch = settings.pitchValue
         else:
             self.pitchTable = self.pitchTableForBuffer(self.pitchBuffer)
 
         coefficients = sp.zeros(11)
 
-        segmenter = Segmenter(buf=self.mainBuffer, windowWidth=userSettings.windowWidth)
+        segmenter = Segmenter(buf=self.mainBuffer, windowWidth=settings.windowWidth)
 
         frames = []
         for (cur_buf, i) in segmenter.eachSegment():
@@ -651,13 +656,13 @@ class Processor(object):
 
             frames.append(frameData)
 
-        if userSettings.includeExplicitStopFrame:
+        if settings.includeExplicitStopFrame:
             frames.append(FrameData.stopFrame())
 
         self.frames = frames
 
     def pitchTableForBuffer(self, pitchBuffer):
-        filterer = Filterer(pitchBuffer, lowPassCutoffInHZ=userSettings.minimumPitchInHZ, highPassCutoffInHZ=userSettings.maximumPitchInHZ, gain=1)
+        filterer = Filterer(pitchBuffer, lowPassCutoffInHZ=settings.minimumPitchInHZ, highPassCutoffInHZ=settings.maximumPitchInHZ, gain=1)
         buf = filterer.process()
 
         segmenter = Segmenter(buf, windowWidth=2)
@@ -706,88 +711,116 @@ class FrameDataBinaryEncoder(object):
             nibbles.append(nibble)
         return nibbles
 
+formatSpecifier = namedtuple("formatSpecifier", ["header", "formatString", "separator", "trailer"])
+
 class HexConverter(object):
+    formats = {
+        "arduino" : formatSpecifier("const unsigned char FILENAME[] PROGMEM = {",
+                     "0x{:02X}",
+                     ",",
+                     "};"),
+        "C"       : formatSpecifier("const unsigned char FILENAME[] = {",
+                     "0x{:02X}",
+                     ",",
+                     "};"),
+        "hex"     : formatSpecifier("",
+                     "{:02x}",
+                     " ",
+                     "")
+                    }
+
     @classmethod
     def process(cls, nibbles):
         '''
         Creates nibble swapped, reversed data bytestream as hex value list.
         Used to be NibbleBitReverser, NibbleSwitcher and HexConverter
         '''
+        formatter = cls.formats[settings.outputFormat]
         result = []
         for u,l in zip(nibbles[0::2], nibbles[1::2]):
             raw = (u+l)[::-1]
             data = int(raw, base=2)
-            result.append("0x{:02X}".format(data))
-        return result
+            result.append(formatter.formatString.format(data))
+        logging.debug("Will format output using {} ({})".format(settings.outputFormat, formatter ))
+        return formatter.header + formatter.separator.join(result) + formatter.trailer
+
 
 class BitPacker(object):
-    delimiter = ","
 
     @classmethod
     def pack(cls, frameData):
         parametersList = [ x.parameters() for x in frameData ]
         binary = FrameDataBinaryEncoder.process(parametersList)
         hexform = HexConverter.process(binary)
-        print ", ".join(hexform)
-        #reverse = NibbleBitReverser.process(hexform)
-        #switched = NibbleSwitcher.process(reverse)
-        #output = HexFormatter.process(switched)
-
-        #return cls.delimiter.join(cls.output)
+        return hexform
 
 
 import argparse
 parser = argparse.ArgumentParser()
-parser.add_argument("-u", "--unvoicedThreshold", 
-    help="Unvoiced frame threshold", 
-    action="store", 
-    default=0.3, 
+parser.add_argument("-u", "--unvoicedThreshold",
+    help="Unvoiced frame threshold",
+    action="store",
+    default=0.3,
     type=float)
-parser.add_argument("-w", "--windowWidth", 
-    help="Window width in frames", 
-    action="store", 
-    default=2, 
+parser.add_argument("-w", "--windowWidth",
+    help="Window width in frames",
+    action="store",
+    default=2,
     type=int)
-parser.add_argument("-U", "--normalizeUnvoicedRMS", 
-    help="Normalize unvoiced frame RMS", 
+parser.add_argument("-U", "--normalizeUnvoicedRMS",
+    help="Normalize unvoiced frame RMS",
     action="store_true")
-parser.add_argument("-V", "--normalizeVoicedRMS", 
-    help="Normalize voiced frame RMS", 
+parser.add_argument("-V", "--normalizeVoicedRMS",
+    help="Normalize voiced frame RMS",
     action="store_true")
-parser.add_argument("-S", "--includeExplicitStopFrame", 
-    help="Create explicit stop frame (needed e.g. for Talkie)", 
+parser.add_argument("-S", "--includeExplicitStopFrame",
+    help="Create explicit stop frame (needed e.g. for Talkie)",
     action="store_true")
-parser.add_argument("-p", "--preEmphasis", 
-    help="Pre emphasize sound to improve quality of translation", 
+parser.add_argument("-p", "--preEmphasis",
+    help="Pre emphasize sound to improve quality of translation",
     action="store_true")
-parser.add_argument("-a", "--preEmphasisAlpha", 
-    help="Emphasis coefficient", 
+parser.add_argument("-a", "--preEmphasisAlpha",
+    help="Emphasis coefficient",
     type=float,
     default=-0.9373)
-parser.add_argument("-d", "--debug", 
+parser.add_argument("-d", "--debug",
     help="Enable (lots) of debug output",
     action="store_true")
 parser.add_argument("-r", "--pitchRange",
     help="Comma separated range of available voice pitch in Hz. Default: 50,500",
     default="50,500")
-parser.add_argument("-f", "--frameRate",
+parser.add_argument("-F", "--frameRate",
     default=25,
     type=int)
 parser.add_argument("-m", "--subMultipleThreshold",
     help="sub-multiple threshold",
     default=0.9,
     type=float)
-parser.add_argument("filename", 
+parser.add_argument("-f", "--outputFormat",
+    help="Output file format",
+    choices=["arduino", "C", "hex"],
+    default="hex")
+parser.add_argument("filename",
     help="File name of a .wav file to be processed",
     action="store")
 
+
 args = parser.parse_args()
 
-settings = userSettings()
 settings.import_from_argparse(args)
 if args.debug:
     logging.basicConfig(level=logging.DEBUG)
     print vars(args)
+    print settings.__dict__
 b=Buffer.fromWave(args.filename)
 x=Processor(b)
-BitPacker.pack(x.frames)
+
+result = BitPacker.pack(x.frames)
+
+new_varname = os.path.basename(args.filename)
+new_varname = os.path.splitext(new_varname)[0]
+
+if re.match("^[^A-Za-z_]", new_varname):
+    new_varname = "_"+new_varname
+
+print result.replace("FILENAME", new_varname)
