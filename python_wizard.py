@@ -736,8 +736,6 @@ class BitPacker(object):
 
 
 import argparse
-
-import argparse
 parser = argparse.ArgumentParser()
 parser.add_argument("-u", "--unvoicedThreshold", 
     help="Unvoiced frame threshold", 
@@ -764,8 +762,7 @@ parser.add_argument("-p", "--preEmphasis",
 parser.add_argument("-a", "--preEmphasisAlpha", 
     help="Emphasis coefficient", 
     type=float,
-    default=-0.9373,
-    action="store")
+    default=-0.9373)
 parser.add_argument("-d", "--debug", 
     help="Enable (lots) of debug output",
     action="store_true")
@@ -787,10 +784,9 @@ args = parser.parse_args()
 
 settings = userSettings()
 settings.import_from_argparse(args)
-exit()
 if args.debug:
     logging.basicConfig(level=logging.DEBUG)
-
+    print vars(args)
 b=Buffer.fromWave(args.filename)
 x=Processor(b)
 BitPacker.pack(x.frames)
