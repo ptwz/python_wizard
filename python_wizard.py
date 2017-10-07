@@ -237,15 +237,8 @@ class PitchEstimator(object):
 def ClosestValueFinder(actual, table):
     if actual < table[0]:
         return 0
-    for i in range(1, len(table)):
-        previous = table[ i - 1 ]
-        if table[i] > actual:
-            if (table[i] - actual) < (actual - previous):
-                return i
-            else:
-                return i-1
 
-    return len(table)-1
+    return table.index(min(table, key=lambda x:abs(x-actual)))
 
 class CodingTable(object):
     kStopFrameIndex = 15
@@ -611,10 +604,10 @@ class Segmenter(object):
 
     def samplesForSegment(self, index):
         length = self.sizeForWindow()
-        samples = sp.zeros(length)
-        for i in range(0, length):
-            sampleIndex = index * self.size + i
-            samples[i] = self.buf.samples[sampleIndex] if sampleIndex < self.buf.size else 0.0
+
+        samples = self.buf.samples[ index * self.size : index * self.size + length ]
+        samples = sp.append(samples, [0]*(length-len(samples)))
+
         return samples
 
     def sizeForWindow(self):
