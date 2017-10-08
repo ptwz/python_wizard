@@ -1,4 +1,4 @@
-This project is a python port of the great macOS tool BlueWizard, which is written in objective C and I was not familiar enough with this C dialect to make an portable command line application out of it.
+This project is a python port of the great macOS tool BlueWizard (https://github.com/patrick99e99/BlueWizard), which is written in objective C and I was not familiar enough with this C dialect to make an portable command line application out of it.
 
 It is intended to convert (voice) audio streams into LPC bitstreams used in the TMS 5220 chip or e.g. in the Arduino library Talkie. Now you can generate your own LPC streams and make your chips say the things you want them to.
 
