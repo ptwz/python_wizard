@@ -1,3 +1,4 @@
+#!/usr/bin/env python
 #import numpy as sp
 from scipy import signal
 from scipy.io import wavfile
