@@ -101,11 +101,6 @@ class Buffer(object):
     def energy(self):
         return self.sumOfSquaresFor()
 
-#    def getCoefficientsFor(x, t=1):
-        #r=sp.corrcoef(sp.array([x[0:len(x)-t], x[t:len(x)]]))
-        #return r[0][1]
-#        yield
-
     def sumOfSquaresFor(self):
         return sp.square(self.samples[self.start:self.end]).sum()
 
@@ -120,6 +115,9 @@ class Buffer(object):
         samples = self.size - lag
         return sum(self.samples[0:samples] * self.samples[lag:samples+lag])
 
+    def rms(self, x):
+        return sp.sqrt(x.dot(x)/x.size)
+
     def getNormalizedCoefficientsFor(self, minimumPeriod, maximumPeriod):
         coefficients = [0]*(maximumPeriod+1)
 
@@ -129,10 +127,10 @@ class Buffer(object):
                 continue
 
             s = sum(self.samples[:-lag] * self.samples[lag:])
-            sumOfSquaresBeginning = sum(self.samples[:-lag]**2)
-            sumOfSquaresEnding = sum(self.samples[lag:]**2)
+            rmsBeginning = self.rms(self.samples[:-lag])
+            rmsEnding = self.rms(self.samples[lag:])
 
-            coefficients[lag] = s / sp.sqrt(sumOfSquaresBeginning * sumOfSquaresEnding)
+            coefficients[lag] = s / (rmsBeginning * rmsEnding)
         return coefficients
 
 class Filterer(object):
