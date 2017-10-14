@@ -18,6 +18,8 @@ class Gui(object):
         self.master = Frame(root, name='master') # create Frame in "root"
         self.filename = None
 
+        self.output_text = None
+
         root.title('Python Wizard') # title for top-level window
         # quit if the window is deleted
         root.protocol("WM_DELETE_WINDOW", self.quit)
@@ -138,6 +140,13 @@ class Gui(object):
         table_scrollbar=Scrollbar(table, orient="vertical")
         table_data.grid(row=1, column=1)
         table_scrollbar.grid(row=1, column=2, sticky="NS")
+        output_text = Text(table, width=40, height=20)
+        output_text.grid(row=1, column=3)
+        output_text_scrollbar = Scrollbar(table)
+        output_text_scrollbar.grid(row=1, column=4, sticky="NS")
+        output_text_scrollbar.config(command=output_text.yview)
+        output_text.config(yscrollcommand=output_text_scrollbar.set)
+        self.output_text = output_text
         table.pack(side="left")
 
         # Create header
@@ -158,7 +167,7 @@ class Gui(object):
         table.pack()
         self.table_scrollbar = table_scrollbar
         self.table_vars = table_vars
-
+        
         return table
 
     def _update_table(self, frames):
@@ -167,7 +176,7 @@ class Gui(object):
         for (n, frame) in zip(range(l), frames[0:l]):
             params = frame.parameters()
             for p in params:
-                self.table_vars[ (n+1, p) ].set(params[p])
+                self.table_vars[ (n, p) ].set(params[p])
 
     def _repeatedly(self):
         self.root.after(500, self._repeatedly)
@@ -179,6 +188,8 @@ class Gui(object):
             x = Processor(b)
             self._update_table(x.frames)
             result = BitPacker.pack(x.frames)
+            self.output_text.delete(1.0, END)
+            self.output_text.insert(END, result)
             print result
 
     def mainloop(self):
