@@ -5,7 +5,7 @@ from ttk import *
 import FileDialog
 from collections import OrderedDict
 
-from backend import settings
+from backend import BitPacker, Processor, Buffer, settings, CodingTable
 
 
 
@@ -24,6 +24,7 @@ class Gui(object):
         self.table_frame = self._make_table()
         self.menu = self._make_menus()
         root.option_add('*tearOff', FALSE)
+        self.run = False
 
     def quit(self):
         self.master.quit()
@@ -121,7 +122,6 @@ class Gui(object):
                     print k, raw_settings[k], new_cfg[k]
             errors = settings.import_from_dict(new_cfg)
             if errors is None:
-                # TODO Recalculate
                 if self.filename is not None:
                     self.run = True
             else:
@@ -141,10 +141,18 @@ class Gui(object):
         d=( ( Label(table, text="A"), Label(table, text="B"), Label(table, text="C") ),
           ( Label(table, text="1"), Label(table, text="2"), Label(table, text="3") ) )
 
-        for row in range(len(d)):
-            for col in range(len(d[row])):
-                d[row][col].grid(row=row, column=col)
-
+        # Create header
+        parameters = CodingTable.parameters()
+        for (p,col) in zip(parameters, range(len(parameters))):
+            p = p[10:]
+            Label(table, text=p).grid(row=1, column=col+2)
+        
+        for row in range(12):
+            Label(table,text=str(row)).grid(row=row+2,column=1)
+            for (p, col) in zip(parameters, range(len(parameters))):
+                e = Entry(table, width=5)
+                e.grid(row=row+2, column=col+2)
+                
         table.pack()
         return table
 
@@ -152,6 +160,12 @@ class Gui(object):
         self.root.after(500, self._repeatedly)
         self.check_change()
         print "Hi!"
+        if self.run:
+            self.run = False
+            b = Buffer.fromWave(self.filename)
+            x = Processor(b)
+            result = BitPacker.pack(x.frames)
+            print result
 
     def mainloop(self):
         self.root.after(500, self._repeatedly)
