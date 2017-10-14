@@ -11,6 +11,8 @@ from backend import BitPacker, Processor, Buffer, settings, CodingTable
 
 
 class Gui(object):
+    NUM_ROWS = 12
+
     def __init__(self, root):
         self.root = root
         self.master = Frame(root, name='master') # create Frame in "root"
@@ -134,27 +136,38 @@ class Gui(object):
         table=Frame(self.root)
         table_data=Frame(table)
         table_scrollbar=Scrollbar(table, orient="vertical")
-        #table_data.grid(row=1, column=1)
-        #table_scrollbar.grid(row=1, column=2)
+        table_data.grid(row=1, column=1)
+        table_scrollbar.grid(row=1, column=2, sticky="NS")
         table.pack(side="left")
-
-        d=( ( Label(table, text="A"), Label(table, text="B"), Label(table, text="C") ),
-          ( Label(table, text="1"), Label(table, text="2"), Label(table, text="3") ) )
 
         # Create header
         parameters = CodingTable.parameters()
         for (p,col) in zip(parameters, range(len(parameters))):
             p = p[10:]
-            Label(table, text=p).grid(row=1, column=col+2)
+            Label(table_data, text=p).grid(row=1, column=col+2)
         
-        for row in range(12):
-            Label(table,text=str(row)).grid(row=row+2,column=1)
+        table_vars = {}
+        for row in range(self.NUM_ROWS):
+            Label(table_data,text=str(row)).grid(row=row+2,column=1)
             for (p, col) in zip(parameters, range(len(parameters))):
-                e = Entry(table, width=5)
+                v = IntVar()
+                e = Entry(table_data, width=5, textvariable=v)
+                table_vars[ (row, p) ] = v
                 e.grid(row=row+2, column=col+2)
-                
+
         table.pack()
+        self.table_scrollbar = table_scrollbar
+        self.table_vars = table_vars
+
         return table
+
+    def _update_table(self, frames):
+        scroll_offset = 0
+        l = min( (self.NUM_ROWS, len(frames) ) )
+        for (n, frame) in zip(range(l), frames[0:l]):
+            params = frame.parameters()
+            for p in params:
+                self.table_vars[ (n+1, p) ].set(params[p])
 
     def _repeatedly(self):
         self.root.after(500, self._repeatedly)
@@ -164,6 +177,7 @@ class Gui(object):
             self.run = False
             b = Buffer.fromWave(self.filename)
             x = Processor(b)
+            self._update_table(x.frames)
             result = BitPacker.pack(x.frames)
             print result
 
