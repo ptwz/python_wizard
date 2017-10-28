@@ -7,9 +7,6 @@ from collections import OrderedDict
 
 from backend import BitPacker, Processor, Buffer, settings, CodingTable
 
-
-
-
 class Gui(object):
     NUM_ROWS = 12
 
@@ -28,11 +25,14 @@ class Gui(object):
         self.table_frame = self._make_table()
         self.menu = self._make_menus()
         root.option_add('*tearOff', FALSE)
+
+        self.first_line = 0
         self.run = False
+        self.frames = []
 
     def quit(self):
         self.master.quit()
-     
+
     def _file_open(self):
         dlg = FileDialog.LoadFileDialog(self.master)
         self.filename = dlg.go(pattern="*.wav")
@@ -42,7 +42,7 @@ class Gui(object):
     def _make_menus(self):
         menubar = Menu(self.master)
         self.root['menu'] = menubar
-        
+
         menu_file = Menu(menubar)
         menubar.add_cascade(menu=menu_file, label="File")
 
@@ -73,7 +73,7 @@ class Gui(object):
             Label(settings_frame, text=key).grid(row=row,column=col)
 
             v = None
-            typ = type(raw_settings[key]) 
+            typ = type(raw_settings[key])
             if typ is float:
                 v=DoubleVar()
             elif typ is int:
@@ -95,7 +95,7 @@ class Gui(object):
             settings_vars[key].set(raw_settings[key])
             row += 1
             if (row>rows):
-                col += 2 
+                col += 2
                 row = 1
 
         self.settings_vars = settings_vars
@@ -119,7 +119,7 @@ class Gui(object):
             return
 
         raw_settings = settings.export_to_odict()
-        
+
         if new_cfg != raw_settings:
             for k in raw_settings:
                 if new_cfg[k] != raw_settings[k]:
@@ -137,9 +137,11 @@ class Gui(object):
     def _make_table(self, data=None):
         table=Frame(self.root)
         table_data=Frame(table)
-        table_scrollbar=Scrollbar(table, orient="vertical")
+        table_scrollbar=Scrollbar(table, orient="vertical",
+        command=self._scrolled)
         table_data.grid(row=1, column=1)
         table_scrollbar.grid(row=1, column=2, sticky="NS")
+
         output_text = Text(table, width=40, height=20)
         output_text.grid(row=1, column=3)
         output_text_scrollbar = Scrollbar(table)
@@ -154,29 +156,74 @@ class Gui(object):
         for (p,col) in zip(parameters, range(len(parameters))):
             p = p[10:]
             Label(table_data, text=p).grid(row=1, column=col+2)
-        
+
         table_vars = {}
+        table_labels = {}
         for row in range(self.NUM_ROWS):
-            Label(table_data,text=str(row)).grid(row=row+2,column=1)
+            table_labels[row] = StringVar()
+            table_labels[row].set(str(row))
+            Label(table_data, textvariable=table_labels[row]).grid(row=row+2, column=1)
             for (p, col) in zip(parameters, range(len(parameters))):
                 v = IntVar()
                 e = Entry(table_data, width=5, textvariable=v)
                 table_vars[ (row, p) ] = v
                 e.grid(row=row+2, column=col+2)
-
+        self.table_labels = table_labels
         table.pack()
+
+
+        print (0, max( [1, self.NUM_ROWS / len(parameters)] ) )
+        table_scrollbar.set(0, max( [1, self.NUM_ROWS / len(parameters)] ) )
         self.table_scrollbar = table_scrollbar
         self.table_vars = table_vars
-        
+
         return table
 
-    def _update_table(self, frames):
-        scroll_offset = 0
-        l = min( (self.NUM_ROWS, len(frames) ) )
-        for (n, frame) in zip(range(l), frames[0:l]):
+    def _scrolled(self, cmd, value, opt=None):
+        frame_count = float(len(self.frames))
+        print "cmd={}, value={}, opt={}, frame_count={}".format(cmd, value, opt, frame_count)
+        page_size = float(self.NUM_ROWS) / frame_count
+        print page_size
+
+        if cmd == SCROLL:
+            if opt == "units":
+                self.first_line += int(value)
+            if opt == "pages":
+                self.first_line += int(self.NUM_ROWS * int(value))
+        elif cmd == MOVETO:
+            self.first_line = int(float(value) / page_size)
+
+        scroll_offset = self.first_line / float(self.NUM_ROWS)
+        print self.first_line, scroll_offset
+
+        self.table_scrollbar.set(scroll_offset, scroll_offset+page_size )
+
+        print self.table_scrollbar.get()
+        self.first_line = int(self.table_scrollbar.get()[0] * frame_count)
+        print self.first_line
+        self._update_table()
+
+    def _update_table(self, frames = None):
+        if frames is not None:
+            self.frames = frames
+        else:
+            frames = self.frames
+
+        scroll_offset = self.first_line / float(self.NUM_ROWS)
+
+        l = min( ( self.first_line+self.NUM_ROWS, len(frames) ) )
+
+        page_size = float(self.NUM_ROWS) / len(frames)
+
+        scroll_pos = self.first_line * page_size
+
+        self.table_scrollbar.set(scroll_offset, scroll_offset+page_size )
+
+        for (line, n, frame) in zip(range(0, self.NUM_ROWS), range(self.first_line,l), frames[self.first_line:l]):
             params = frame.parameters()
+            self.table_labels[line].set( str(n) )
             for p in params:
-                self.table_vars[ (n, p) ].set(params[p])
+                self.table_vars[ (line, p) ].set(params[p])
 
     def _repeatedly(self):
         self.root.after(500, self._repeatedly)
