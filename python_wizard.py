@@ -1,7 +1,10 @@
 #!/usr/bin/env python
 import re
 import os
-from backend import BitPacker, Processor, Buffer, settings
+from userSettings import settings
+from BitPacker import BitPacker
+from Processor import Processor
+from Buffer import Buffer
 import logging
 
 
