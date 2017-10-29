@@ -8,7 +8,7 @@ from collections import OrderedDict
 from backend import BitPacker, Processor, Buffer, settings, CodingTable
 
 class Gui(object):
-    NUM_ROWS = 12
+    NUM_ROWS = 15
 
     def __init__(self, root):
         self.root = root
@@ -179,11 +179,26 @@ class Gui(object):
 
         return table
 
+    def _make_scroll_pos(self):
+        frame_count = float(len(self.frames))
+        # First line of scrolled data
+        scroll_offset = self.first_line / (frame_count+self.NUM_ROWS)
+        page_size = float(self.NUM_ROWS) / (frame_count+self.NUM_ROWS)
+
+        top = scroll_offset
+        bottom = scroll_offset + page_size
+
+        # Clip to bottom
+        if bottom > 1:
+            top = 1 - page_size
+            bottom = 1
+
+        return (top, bottom)
+
     def _scrolled(self, cmd, value, opt=None):
         frame_count = float(len(self.frames))
         print "cmd={}, value={}, opt={}, frame_count={}".format(cmd, value, opt, frame_count)
         page_size = float(self.NUM_ROWS) / frame_count
-        print page_size
 
         if cmd == SCROLL:
             if opt == "units":
@@ -191,15 +206,21 @@ class Gui(object):
             if opt == "pages":
                 self.first_line += int(self.NUM_ROWS * int(value))
         elif cmd == MOVETO:
-            self.first_line = int(float(value) / page_size)
+            self.first_line = int( (float(value)) * frame_count - self.NUM_ROWS / 2)
+            if self.first_line < 0:
+                self.first_line = 0
+            elif self.first_line+self.NUM_ROWS > frame_count:
+                self.first_line = frame_count - self.NUM_ROWS
+        
+        self.first_line = max(0, self.first_line)
+        self.first_line = min(frame_count-self.NUM_ROWS, self.first_line)
 
-        scroll_offset = self.first_line / float(self.NUM_ROWS)
-        print self.first_line, scroll_offset
+        print self.first_line
 
-        self.table_scrollbar.set(scroll_offset, scroll_offset+page_size )
+        self.table_scrollbar.set( *self._make_scroll_pos() )
 
         print self.table_scrollbar.get()
-        self.first_line = int(self.table_scrollbar.get()[0] * frame_count)
+        #self.first_line = int(self.table_scrollbar.get()[0] * frame_count)
         print self.first_line
         self._update_table()
 
