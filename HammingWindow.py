@@ -1,3 +1,6 @@
+import logging
+import scipy as sp
+
 class HammingWindow(object):
     _windows = {}
 

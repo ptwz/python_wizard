@@ -1,3 +1,7 @@
+from tools import formatSpecifier
+from userSettings import settings
+import logging
+
 class HexConverter(object):
     formats = {
         "arduino" : formatSpecifier("const unsigned char FILENAME[] PROGMEM = {",

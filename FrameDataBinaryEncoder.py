@@ -1,3 +1,8 @@
+from tools import BitHelpers
+from CodingTable import CodingTable
+from collections import namedtuple
+import logging
+
 class FrameDataBinaryEncoder(object):
     @classmethod
     def process(cls, parametersList):
@@ -22,6 +27,3 @@ class FrameDataBinaryEncoder(object):
             binary = binary[4:]
             nibbles.append(nibble)
         return nibbles
-
-formatSpecifier = namedtuple("formatSpecifier", ["header", "formatString", "separator", "trailer"])
-

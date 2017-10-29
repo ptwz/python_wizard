@@ -1,3 +1,7 @@
+from userSettings import settings
+from Buffer import Buffer
+import scipy as sp
+
 class Segmenter(object):
     def __init__(self, buf, windowWidth):
         milliseconds = settings.frameRate

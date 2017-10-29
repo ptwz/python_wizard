@@ -1,3 +1,8 @@
+from scipy import signal
+from scipy.io import wavfile
+import scipy as sp
+import logging
+
 class Buffer(object):
     @classmethod
     def copy(cls, orig, applyFilter=None):

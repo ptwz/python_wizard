@@ -1,3 +1,5 @@
+import logging
+
 class userSettings(object):
     availableSettings = ["pitchValue", "unvoicedThreshold", "windowWidth",
         "normalizeUnvoicedRMS", "normalizeUnvoicedRMS", "includeExplicitStopFrame",
@@ -32,6 +34,8 @@ class userSettings(object):
             else:
                 try:
                     self.__setattr__(key, type(self.__getattribute__(key))(input_dict[key]))
+                except AttributeError:
+                    logging.debug("Discarding argument {}={}".format(key, input_dict[key]))
                 except ValueError:
                     error_list.append(key)
         if len(error_list) > 0:

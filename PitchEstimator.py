@@ -1,3 +1,7 @@
+from scipy import signal
+from userSettings import settings
+import scipy as sp
+
 class PitchEstimator(object):
     @classmethod
     def pitchForPeriod(cls, buf):

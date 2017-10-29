@@ -1,3 +1,7 @@
+import scipy as sp
+from CodingTable import CodingTable
+from userSettings import settings
+
 class Reflector(object):
     kNumberOfKParameters = 11
 

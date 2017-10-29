@@ -1,3 +1,10 @@
+from Reflector import Reflector
+from copy import deepcopy
+from tools import ClosestValueFinder
+from CodingTable import CodingTable
+from FrameDataBinaryEncoder import FrameDataBinaryEncoder
+from userSettings import settings
+
 class FrameData(object):
     @classmethod
     def stopFrame(cls):
@@ -49,7 +56,7 @@ class FrameData(object):
                     ks = self.kParametersFrom(5, 10, translate=translate)
                     parameters.update(ks)
 
-        return copy.deepcopy(parameters)
+        return deepcopy(parameters)
 
     def setParameter(self, parameter, value = None, translatedValue = None):
         self.parameters = None
@@ -132,7 +139,7 @@ class FrameData(object):
         for k in range(frm, to+1):
             key = self.parameterKeyForK(k)
             parameters[key] = self.parameterizedValueForK(self.reflector.ks[k], bin_no=k, translate=translate)
-        return copy.deepcopy(parameters)
+        return deepcopy(parameters)
 
     def parameterKeyForK(self, k):
         return "kParameterK{}".format(int(k))
