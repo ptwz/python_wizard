@@ -1,3 +1,6 @@
+from userSettings import settings
+import scipy as sp
+
 class PreEmphasizer(object):
     @classmethod
     def processBuffer(cls, buf):

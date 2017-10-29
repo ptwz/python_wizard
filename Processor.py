@@ -6,6 +6,7 @@ from PitchEstimator import PitchEstimator
 from userSettings import settings
 from HammingWindow import HammingWindow
 from FrameData import FrameData
+from PreEmphasizer import PreEmphasizer
 import scipy as sp
 import logging
 

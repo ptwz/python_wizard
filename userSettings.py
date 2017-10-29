@@ -1,4 +1,5 @@
 import logging
+from collections import OrderedDict
 
 class userSettings(object):
     availableSettings = ["pitchValue", "unvoicedThreshold", "windowWidth",
