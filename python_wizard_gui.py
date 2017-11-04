@@ -5,11 +5,11 @@ import FileDialog
 from collections import OrderedDict
 
 #from backend import BitPacker, Processor, Buffer, settings, CodingTable
-from BitPacker import BitPacker
-from Processor import Processor
-from Buffer import Buffer
-from CodingTable import CodingTable
-from userSettings import settings
+from pywizard.tools import BitPacker
+from pywizard.Processor import Processor
+from pywizard.Buffer import Buffer
+from pywizard.CodingTable import CodingTable
+from pywizard.userSettings import settings
 
 class Gui(object):
     NUM_ROWS = 15
