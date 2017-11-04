@@ -2,7 +2,7 @@
 import re
 import os
 from pywizard.userSettings import settings
-from pywizard.BitPacker import BitPacker
+from pywizard.tools import BitPacker
 from pywizard.Processor import Processor
 from pywizard.Buffer import Buffer
 import logging
