@@ -3,6 +3,22 @@ from CodingTable import CodingTable
 from userSettings import settings
 
 class Reflector(object):
+    """
+    Implements the reflector parameter guessing for the LPC
+    algorithm.
+
+    Test if stop frames do not accidentally created
+    >>> from CodingTable import CodingTable
+
+    >>> r = Reflector()
+
+    >>> r.rms = CodingTable.rms[15]
+
+    >>> r.limitRMS = True
+
+    >>> r.rms == CodingTable.rms[14]
+    True
+    """
     kNumberOfKParameters = 11
 
     def __init__(self, k=None, rms=None, limitRMS=None):
@@ -15,7 +31,7 @@ class Reflector(object):
         else:
             assert(rms is not None)
             assert(limitRMS is not None)
-            self.rms = rms
+            self._rms = rms
             self.ks = k
             self.limitRMS = limitRMS
 
@@ -50,14 +66,17 @@ class Reflector(object):
         rms = cls.formattedRMS( d[11], numberOfSamples )
         return cls(k=k, rms=rms, limitRMS=True )
 
-    def setRms(self, rms):
-        self.rms = rms
 
+    @property
     def rms(self):
-        if self.limitRMS and self.rms >= CodingTable.rms[CodingTable.kStopFrameIndex - 1]:
+        if self.limitRMS and self._rms >= CodingTable.rms[CodingTable.kStopFrameIndex - 1]:
             return CodingTable.rms[CodingTable.kStopFrameIndex - 1]
         else:
-            return self.rms
+            return self._rms
+
+    @rms.setter
+    def rms(self, rms):
+        self._rms = rms
 
     def isVoiced(self):
         return not self.isUnvoiced()

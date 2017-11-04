@@ -1,12 +1,16 @@
 #!/usr/bin/env python
 import re
 import os
-from userSettings import settings
-from BitPacker import BitPacker
-from Processor import Processor
-from Buffer import Buffer
+from pywizard.userSettings import settings
+from pywizard.BitPacker import BitPacker
+from pywizard.Processor import Processor
+from pywizard.Buffer import Buffer
 import logging
 
+'''
+Command line application for processing WAV files into LPC data
+for use with TMS5220 (emulators)
+'''
 
 import argparse
 parser = argparse.ArgumentParser()
