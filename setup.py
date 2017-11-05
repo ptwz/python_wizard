@@ -11,5 +11,5 @@ setup(
     packages = ["pywizard"],
     install_requires=['scipy'],
     python_requires = '>=2.7',
-    scripts = ['python_wizard.py', 'python_wizard_gui.py']
+    scripts = ['python_wizard', 'python_wizard_gui']
 )
