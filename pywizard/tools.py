@@ -1,14 +1,5 @@
 from collections import namedtuple
 
-class BitPacker(object):
-
-    @classmethod
-    def pack(cls, frameData):
-        parametersList = [ x.parameters() for x in frameData ]
-        binary = FrameDataBinaryEncoder.process(parametersList)
-        hexform = HexConverter.process(binary)
-        return hexform
-
 class BitHelpers(object):
     @classmethod
     def valueToBinary(cls, value, bits):

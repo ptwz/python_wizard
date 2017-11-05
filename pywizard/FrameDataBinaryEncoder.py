@@ -1,7 +1,17 @@
 from tools import BitHelpers
 from CodingTable import CodingTable
 from collections import namedtuple
+from HexConverter import HexConverter
 import logging
+
+class BitPacker(object):
+
+    @classmethod
+    def pack(cls, frameData):
+        parametersList = [ x.parameters() for x in frameData ]
+        binary = FrameDataBinaryEncoder.process(parametersList)
+        hexform = HexConverter.process(binary)
+        return hexform
 
 class FrameDataBinaryEncoder(object):
     @classmethod
