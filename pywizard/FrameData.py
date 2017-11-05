@@ -9,7 +9,7 @@ class FrameData(object):
     @classmethod
     def stopFrame(cls):
         reflector = Reflector()
-        reflector.setRms ( CodingTable.rms[CodingTable.kStopFrameIndex] )
+        reflector.rms = CodingTable.rms[CodingTable.kStopFrameIndex]
         fd = cls(reflector=reflector, pitch=0, repeat=False)
         fd.decodeFrame = False
         fd.stopFrame = True

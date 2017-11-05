@@ -27,6 +27,7 @@ class Reflector(object):
         if (k is None):
             assert(rms is None)
             assert(limitRMS is None)
+            self.limitRMS = False
             self.ks = [0] * self.kNumberOfKParameters;
         else:
             assert(rms is not None)

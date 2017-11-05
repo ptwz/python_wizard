@@ -5,7 +5,7 @@ import FileDialog
 from collections import OrderedDict
 
 #from backend import BitPacker, Processor, Buffer, settings, CodingTable
-from pywizard.tools import BitPacker
+from pywizard.FrameDataBinaryEncoder import BitPacker
 from pywizard.Processor import Processor
 from pywizard.Buffer import Buffer
 from pywizard.CodingTable import CodingTable
