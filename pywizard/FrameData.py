@@ -22,13 +22,16 @@ class FrameData(object):
         fd.decodeFrame = True
         return fd
 
-    def __init__(self, reflector, pitch, repeat):
+    def __repr__(self):
+        return "FrameData(reflector={}, pitch={}, repeat={}, parameters{})".format(self.reflector, self.pitch, self.repeat, self.parameters())
+
+    def __init__(self, reflector, pitch, repeat, parameters=None):
         self.reflector = reflector
         self.pitch = pitch
         self.stopFrame = False
         self.decodeFrame = False
         self.repeat = repeat
-        self._parameters = None
+        self._parameters = parameters
 
     def parameters(self):
         if self._parameters is None:
