@@ -215,7 +215,7 @@ class Gui(object):
                 self.first_line = 0
             elif self.first_line+self.NUM_ROWS > frame_count:
                 self.first_line = frame_count - self.NUM_ROWS
-        
+
         self.first_line = max(0, self.first_line)
         self.first_line = min(frame_count-self.NUM_ROWS, self.first_line)
 
@@ -228,11 +228,15 @@ class Gui(object):
         print self.first_line
         self._update_table()
 
-    def _update_table(self, frames = None):
+
+    def _table_iterator(self, frames):
         if frames is not None:
             self.frames = frames
         else:
             frames = self.frames
+
+        if len(frames)==0:
+            return []
 
         scroll_offset = self.first_line / float(self.NUM_ROWS)
 
@@ -244,25 +248,44 @@ class Gui(object):
 
         self.table_scrollbar.set(scroll_offset, scroll_offset+page_size )
 
-        for (line, n, frame) in zip(range(0, self.NUM_ROWS), range(self.first_line,l), frames[self.first_line:l]):
+        return zip(range(0, self.NUM_ROWS), range(self.first_line,l), frames[self.first_line:l])
+
+    def _update_table(self, frames = None):
+        for (line, n, frame) in self._table_iterator(frames):
             params = frame.parameters()
             self.table_labels[line].set( str(n) )
             for p in params:
                 self.table_vars[ (line, p) ].set(params[p])
 
+    def _readback_table(self, frames = None):
+        for (line, n, frame) in self._table_iterator(frames):
+            params = frame.parameters()
+            self.table_labels[line].set( str(n) )
+            changed = False
+            for p in params:
+                value = self.table_vars[ (line, p) ].get()
+                changed = changed or not ( int(params[p]) == int(value) )
+                params[p] = int(value)
+            if changed:
+                print "Changed"
+                self._update_output()
+
     def _repeatedly(self):
         self.root.after(500, self._repeatedly)
         self.check_change()
+        self._readback_table()
         print "Hi!"
         if self.run:
             self.run = False
             b = Buffer.fromWave(self.filename)
             x = Processor(b)
             self._update_table(x.frames)
-            result = BitPacker.pack(x.frames)
+            self._update_output()
+
+    def _update_output(self):
+            result = BitPacker.pack(self.frames)
             self.output_text.delete(1.0, END)
             self.output_text.insert(END, result)
-            print result
 
     def mainloop(self):
         self.root.after(500, self._repeatedly)
