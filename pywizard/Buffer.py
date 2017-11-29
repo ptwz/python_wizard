@@ -95,7 +95,10 @@ class Buffer(object):
             s = sum(self.samples[:-lag] * self.samples[lag:])
             rmsBeginning = self.rms(self.samples[:-lag])
             rmsEnding = self.rms(self.samples[lag:])
-
-            coefficients[lag] = s / (rmsBeginning * rmsEnding)
+            
+            if rmsBeginning * rmsEnding <= 1e-15:
+                coefficients[lag] = sp.NaN
+            else:
+                coefficients[lag] = s / (rmsBeginning * rmsEnding)
         return coefficients
 
