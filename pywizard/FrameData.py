@@ -87,9 +87,10 @@ class FrameData(object):
             if translatedValue is None:
                 index = int(value)
                 k = CodingTable.kBinFor(index)
+                l = k[index]
             else:
                 l = float(translatedValue)
-            self.reflector.ks[bin_no] = float(k)
+            self.reflector.ks[bin_no] = float(l)
 
     def parameterizedValueForK(self, k, bin_no, translate):
         index = ClosestValueFinder(k, table=CodingTable.kBinFor(bin_no))
