@@ -1,11 +1,7 @@
 #!/usr/bin/env python
+import logging
 import re
 import os
-from pywizard.userSettings import settings
-from pywizard.FrameDataBinaryEncoder import BitPacker
-from pywizard.Processor import Processor
-from pywizard.Buffer import Buffer
-import logging
 
 '''
 Command line application for processing WAV files into LPC data
@@ -61,14 +57,18 @@ parser.add_argument("filename",
     help="File name of a .wav file to be processed",
     action="store")
 
-
 args = parser.parse_args()
 
-settings.import_from_argparse(args)
 if args.debug:
     logging.basicConfig(level=logging.DEBUG)
     print vars(args)
-    print settings.__dict__
+
+from pywizard.userSettings import settings
+from pywizard.FrameDataBinaryEncoder import BitPacker
+from pywizard.Processor import Processor
+from pywizard.Buffer import Buffer
+
+settings.import_from_argparse(args)
 b=Buffer.fromWave(args.filename)
 x=Processor(b)
 
