@@ -43,27 +43,45 @@ class Preview(object):
             frame_state = cur_frame.translatedParameters()
 
             if cur_frame.reflector.isVoiced:
-                in_data = [ x * frame_state['kParameterGain'] for x in self.chirp[::-1] ]
+                in_data = [ x * frame_state['kParameterGain'] for x in self.chirp ]
+                period = frame_state['kParameterPitch']
             else:
-                in_data = ( scipy.rand(100) * 128 * frame_state['kParameterGain']).tolist() 
+                period = 200
+                in_data = ( scipy.rand(200) * 128 * frame_state['kParameterGain']).tolist() 
                 #for x in range(100):
                 #    rng = (rng >> 1) ^ ( 0xB800 if (rng &1) else 0)
                 #    in_data.append(rng)
+
+            if frame_state['kParameterGain'] == 0:
+                #FIXME: What now?!
+                continue
 
 
             if not frame_state['kParameterRepeat']:
                 # Repeat frames keep last reflector bits
                 ks = [0] * 10
-
+            
                 copylen = 4
                 if cur_frame.reflector.isVoiced():
                     copylen = 10
+                print copylen
+                for i in range(copylen):
+                    k = "kParameterK{}".format(i+1)
+                    try:
+                        ks[i] = frame_state[k]
+                    except KeyError:
+                        print "TRAP"
+                        ks[i] = 0
 
-            for i in range(copylen):
-                k = "kParameterK{}".format(i+1)
-                ks[i] = frame_state[k]
-    
-            for value in in_data:
+            # New frame every 25ms, so at fs=8kHz
+            # this makes 200 samples/frame
+            for i in range(0, 200):
+                pos = i % int(period)
+                if pos < len(in_data):
+                    value = in_data[ pos ]
+                else:
+                    value = 0.
+
                 lattice_fwd[10] = value / 65535.
 
                 for i in range(9, -1, -1):
