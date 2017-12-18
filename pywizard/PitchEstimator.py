@@ -1,5 +1,6 @@
 from scipy import signal
 from userSettings import settings
+import logging
 import scipy as sp
 
 class PitchEstimator(object):
@@ -36,10 +37,12 @@ class PitchEstimator(object):
         found = False
 
         estimate = self.interpolated()
-        # NaN check???!! if (estimate != estimate) return 0.0;
+        if sp.isnan(estimate):
+            return 0.0
         while not found and maximumMultiple >= 1:
             subMultiplesAreStrong = True
             for i in range(0, maximumMultiple):
+                logging.debug("estimate={} maximumMultiple={}".format(estimate, maximumMultiple))
                 subMultiplePeriod = int( sp.floor( (i+1) * estimate / maximumMultiple + .5) )
                 try:
                     curr = self._normalizedCoefficients[subMultiplePeriod]
