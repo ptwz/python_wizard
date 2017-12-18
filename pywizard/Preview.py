@@ -30,57 +30,57 @@ class Preview(object):
         lattice_rev = [0.] * 11
 
         while decoding:
-            if cur_frame is None:
-                pitch_count = 0
-                interp_count = 0
-                if len(self.frames) == 0:
-                    decoding = False
-                    break
-                cur_frame = self.frames.pop()
-                if cur_frame.stopFrame:
-                    decoding = False
-                    break
+            cur_frame = self.frames.pop()
+            pitch_count = 0
+            interp_count = 0
+            if len(self.frames) == 0:
+                decoding = False
+                break
+            if cur_frame.stopFrame:
+                decoding = False
+                break
 
-                frame_state = frame._translatedParameters()
+            frame_state = cur_frame.translatedParameters()
 
-                if cur_frame.isVoiced:
-                    in_data = [ x * frame_state['kParameterGain'] for x in self.chirp[::-1] ]
-                else:
-                    in_data = ( scipy.rand(100) * 128 * frame_state['kParameterGain']).tolist() 
-                    #for x in range(100):
-                    #    rng = (rng >> 1) ^ ( 0xB800 if (rng &1) else 0)
-                    #    in_data.append(rng)
+            if cur_frame.reflector.isVoiced:
+                in_data = [ x * frame_state['kParameterGain'] for x in self.chirp[::-1] ]
+            else:
+                in_data = ( scipy.rand(100) * 128 * frame_state['kParameterGain']).tolist() 
+                #for x in range(100):
+                #    rng = (rng >> 1) ^ ( 0xB800 if (rng &1) else 0)
+                #    in_data.append(rng)
 
 
-                if not frame_state['kParameterRepeat']:
-                    # Repeat frames keep last reflector bits
-                    ks = [0] * 10
+            if not frame_state['kParameterRepeat']:
+                # Repeat frames keep last reflector bits
+                ks = [0] * 10
 
-                    copylen = 4
-                    if frame.isVoiced():
-                        copylen = 10
+                copylen = 4
+                if cur_frame.reflector.isVoiced():
+                    copylen = 10
 
-                    for i in range(copylen):
-                        k = "kParameterK{}".format(i+1)
-                        ks[i] = frame_state[k]
+            for i in range(copylen):
+                k = "kParameterK{}".format(i+1)
+                ks[i] = frame_state[k]
+    
+            for value in in_data:
+                lattice_fwd[10] = value / 65535.
 
-            lattice_fwd[10] = in_data.pop()
-            for i in range(9, -1, -1):
-                lattice_fwd[i] = lattice_fwd[i+1] - (self.state[k]*x[i]) / 128.
-                # 1/0: / 32768 !!
+                for i in range(9, -1, -1):
+                    lattice_fwd[i] = lattice_fwd[i+1] - (ks[i]*lattice_rev[i]) / 2.
+                    # 1/0: / 32768 !!
 
-            if lattice_fwd[0] > 1:
-                lattice_fwd[0] = 1
-            elif lattice_fwd[0] < -1:
-                lattice_fwd[0] = -1
-        
-            for i in range(9, 0, -1):
-                k = "kParameterK{}".format(i-1)
-                lattice_rev[i] = lattice_fwd[i-1] - (self.state[k]*x[i]) / 128.
-                # 1/0: / 32768 !!
-            lattice_rev[0] = lattice_fwd[0]
+#            if lattice_fwd[0] > 1:
+#                lattice_fwd[0] = 1
+#            elif lattice_fwd[0] < -1:
+#                lattice_fwd[0] = -1
+#        
+                for i in range(9, 0, -1):
+                    lattice_rev[i] = lattice_rev[i-1] - (ks[i]*lattice_fwd[i]) / 2.
+                    # 1/0: / 32768 !!
+                lattice_rev[0] = lattice_fwd[0]
 
-            yield lattice_fwd[0] / 4.
+                yield lattice_fwd[0] / 4.
 
     def process(self):
         return(self.frameData)

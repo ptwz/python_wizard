@@ -32,6 +32,7 @@ class FrameData(object):
         self.decodeFrame = False
         self.repeat = repeat
         self._parameters = parameters
+        self._translatedParameters = None
 
     def parameters(self):
         if self._parameters is None:
