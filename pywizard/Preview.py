@@ -43,18 +43,22 @@ class Preview(object):
             frame_state = cur_frame.translatedParameters()
 
             if cur_frame.reflector.isVoiced:
-                in_data = [ x * frame_state['kParameterGain'] for x in self.chirp ]
+                in_data = [ (x-128.)/128. * frame_state['kParameterGain']/(2**13) for x in self.chirp ]
                 period = frame_state['kParameterPitch']
+                print "a", frame_state['kParameterGain']
             else:
                 period = 200
-                in_data = ( scipy.rand(200) * 128 * frame_state['kParameterGain']).tolist() 
+                in_data = ( scipy.rand(200)* frame_state['kParameterGain'])/(2.**13) .tolist()
+                print "b"
                 #for x in range(100):
                 #    rng = (rng >> 1) ^ ( 0xB800 if (rng &1) else 0)
                 #    in_data.append(rng)
+            print max(in_data), min(in_data)
 
             if frame_state['kParameterGain'] == 0:
                 #FIXME: What now?!
-                continue
+                #continue
+                pass
 
 
             if not frame_state['kParameterRepeat']:
@@ -64,7 +68,6 @@ class Preview(object):
                 copylen = 4
                 if cur_frame.reflector.isVoiced():
                     copylen = 10
-                print copylen
                 for i in range(copylen):
                     k = "kParameterK{}".format(i+1)
                     try:
@@ -82,7 +85,7 @@ class Preview(object):
                 else:
                     value = 0.
 
-                lattice_fwd[10] = value / 65535.
+                lattice_fwd[10] = value
 
                 for i in range(9, -1, -1):
                     lattice_fwd[i] = lattice_fwd[i+1] - (ks[i]*lattice_rev[i]) / 2.
@@ -93,8 +96,8 @@ class Preview(object):
 #            elif lattice_fwd[0] < -1:
 #                lattice_fwd[0] = -1
 #        
-                for i in range(9, 0, -1):
-                    lattice_rev[i] = lattice_rev[i-1] - (ks[i]*lattice_fwd[i]) / 2.
+                for i in range(9, -1, -1):
+                    lattice_rev[i+1] = lattice_rev[i] - (ks[i]*lattice_fwd[i]) / 2.
                     # 1/0: / 32768 !!
                 lattice_rev[0] = lattice_fwd[0]
 
