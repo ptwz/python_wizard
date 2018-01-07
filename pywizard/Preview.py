@@ -97,7 +97,7 @@ class Preview(object):
 #                lattice_fwd[0] = -1
 #        
                 for i in range(9, -1, -1):
-                    lattice_rev[i+1] = lattice_rev[i] - (ks[i]*lattice_fwd[i]) / 2.
+                    lattice_rev[i+1] = lattice_rev[i] + (ks[i]*lattice_fwd[i]) / 2.
                     # 1/0: / 32768 !!
                 lattice_rev[0] = lattice_fwd[0]
 
