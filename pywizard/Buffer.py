@@ -95,11 +95,9 @@ class Buffer(object):
                 continue
 
             corr = np.corrcoef(self.samples[lag:], self.samples[:-lag])
-            c = abs(corr[0][1])
+            c = corr[0][1]
 
-            if c <= 1e-15:
-                coefficients[lag] = sp.NaN
-            else:
-                coefficients[lag] = c
+            coefficients[lag] = c
+        logging.debug("getNormalizedCoefficientsFor coefficients={}".format(coefficients))
         return coefficients
 

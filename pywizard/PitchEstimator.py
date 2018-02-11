@@ -42,7 +42,7 @@ class PitchEstimator(object):
         while not found and maximumMultiple >= 1:
             subMultiplesAreStrong = True
             for i in range(0, maximumMultiple):
-                logging.debug("estimate={} maximumMultiple={}".format(estimate, maximumMultiple))
+                logging.debug("estimate={} bestPeriod={} maximumMultiple={}".format(estimate, bestPeriod, maximumMultiple))
                 subMultiplePeriod = int( sp.floor( (i+1) * estimate / maximumMultiple + .5) )
                 try:
                     curr = self._normalizedCoefficients[subMultiplePeriod]
@@ -54,6 +54,7 @@ class PitchEstimator(object):
                 estimate /= maximumMultiple
             maximumMultiple -= 1
 
+        logging.debug("estimated={}".format(estimate))
         return estimate
 
     def getNormalizedCoefficients(self):
@@ -68,13 +69,13 @@ class PitchEstimator(object):
 
             bestPeriod = self._normalizedCoefficients.index(max(self._normalizedCoefficients))
             logging.debug("_normalizedCoefficients = {}".format(self._normalizedCoefficients))
-            logging.debug("bestPeriod={} minimumPeriod={} maximumPeriod={}".format(bestPeriod, self.minimumPeriod(), self.maximumPeriod()))
             if bestPeriod < self.minimumPeriod():
                 bestPeriod = self.minimumPeriod()
             if bestPeriod > maximumPeriod:
                 bestPeriod = maximumPeriod
 
             self._bestPeriod = int(bestPeriod)
+            logging.debug("bestPeriod={} minimumPeriod={} maximumPeriod={} result={}".format(bestPeriod, self.minimumPeriod(), self.maximumPeriod(), self._bestPeriod))
 
         return self._bestPeriod
 
