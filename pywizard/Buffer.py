@@ -29,7 +29,11 @@ class Buffer(object):
             d2 -= 128
             d2 /= 127
 
-        assert(max(d2) <= 1)
+        if (len(d2.shape)>1):
+            d2 = np.average(d2, axis=1)
+            logging.debug("mono: stereo track mixed down to mono")
+
+        assert(d2.max() <= 1)
 
         if downsample_factor>1:
             data = sp.signal.resample(d2, int(len(d2)/downsample_factor))
