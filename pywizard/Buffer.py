@@ -94,10 +94,13 @@ class Buffer(object):
                 coefficients[lag] = 0.0
                 continue
 
-            corr = np.corrcoef(self.samples[lag:], self.samples[:-lag])
-            c = corr[0][1]
-
-            coefficients[lag] = c
-        logging.debug("getNormalizedCoefficientsFor coefficients={}".format(coefficients))
+            s = sum(self.samples[:-lag] * self.samples[lag:])
+            rmsBeginning = self.rms(self.samples[:-lag])
+            rmsEnding = self.rms(self.samples[lag:])
+            
+            if rmsBeginning * rmsEnding <= 1e-15:
+                coefficients[lag] = sp.NaN
+            else:
+                coefficients[lag] = s / (rmsBeginning * rmsEnding)
         return coefficients
 
