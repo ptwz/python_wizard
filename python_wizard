@@ -53,6 +53,9 @@ parser.add_argument("-f", "--outputFormat",
     help="Output file format",
     choices=["arduino", "C", "hex"],
     default="hex")
+parser.add_argument("-R", "--findRepeat",
+    help="Try to find repeats",
+    action="store_true")
 parser.add_argument("filename",
     help="File name of a .wav file to be processed",
     action="store")

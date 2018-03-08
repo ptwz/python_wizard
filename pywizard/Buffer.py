@@ -77,6 +77,9 @@ class Buffer(object):
             coefficients[i] = self.aForLag(i)
         return coefficients
 
+    def getFFT(self):
+        return(
+
     def aForLag(self, lag):
         samples = self.size - lag
         return sum(self.samples[0:samples] * self.samples[lag:samples+lag])

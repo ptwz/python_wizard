@@ -44,6 +44,17 @@ class FrameData(object):
             self._translatedParameters = self.parametersWithTranslate(True)
         return self._translatedParameters
 
+    def isRepeat(self, last):
+        me = self.translatedParameters()
+        old = last.translatedParameters()
+        same = True
+        for key in me:
+            try:
+                same = same and ( me[key] == old[key] )
+            except KeyError:
+                same = False
+        return same
+
     def parametersWithTranslate(self, translate):
         parameters = {}
         parameters["kParameterGain"] = self.parameterizedValueForRMS(self.reflector.rms, translate=translate)

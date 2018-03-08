@@ -12,6 +12,7 @@ class PitchEstimator(object):
         self._bestPeriod = None
         self.buf = buf
         self._normalizedCoefficients = self.getNormalizedCoefficients()
+        self._fft = 
 
     def isOutOfRange(self):
         x = self.bestPeriod()

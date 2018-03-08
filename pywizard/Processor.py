@@ -31,6 +31,7 @@ class Processor(object):
         segmenter = Segmenter(buf=self.mainBuffer, windowWidth=settings.windowWidth)
 
         frames = []
+	last = None
         for (cur_buf, i) in segmenter.eachSegment():
             HammingWindow.processBuffer(cur_buf)
             coefficients = cur_buf.getCoefficientsFor()
@@ -42,6 +43,11 @@ class Processor(object):
                 pitch = self.pitchTable[i]
 
             frameData = FrameData(reflector, pitch, repeat=False)
+	    if settings.findRepeat and last is not None and frameData.isRepeat(last):
+                logging.debug("Got a repeat frame!")
+                frameData = FrameData(reflector, pitch, repeat=True)
+	    else:
+                last = frameData
 
             frames.append(frameData)
 
