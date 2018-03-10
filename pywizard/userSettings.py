@@ -6,7 +6,7 @@ class userSettings(object):
         "normalizeUnvoicedRMS", "normalizeUnvoicedRMS", "includeExplicitStopFrame",
         "preEmphasis", "preEmphasisAlpha", "overridePitch", "pitchOffset",
         "minimumPitchInHZ", "maximumPitchInHZ", "frameRate",
-        "subMultipleThreshold", "outputFormat", "rmsLimit"]
+        "subMultipleThreshold", "outputFormat", "rmsLimit", "pitchEstimate"]
     pitchValue = 0
     unvoicedThreshold = 0.3
     windowWidth = 2
@@ -23,6 +23,7 @@ class userSettings(object):
     subMultipleThreshold = 0.9
     outputFormat = "arduino"
     rmsLimit = 14
+    pitchEstimate = "fft"
 
     def import_from_argparse(self, raw):
         v = vars(raw)

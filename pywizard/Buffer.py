@@ -61,6 +61,9 @@ class Buffer(object):
     def __len__(self):
         return(self.size)
 
+    def fft(self):
+        return abs(sp.fft(self.samples))
+
     def copySamples(self, samples):
         self.samples = samples[self.start:self.end]
 

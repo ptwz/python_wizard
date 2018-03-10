@@ -49,6 +49,10 @@ parser.add_argument("-m", "--subMultipleThreshold",
     help="sub-multiple threshold",
     default=0.9,
     type=float)
+parser.add_argument("-e", "--pitchEstimate",
+    help="Pitch estimator technique",
+    choices=["fft", "autocorrellation"],
+    default="fft")
 parser.add_argument("-f", "--outputFormat",
     help="Output file format",
     choices=["arduino", "C", "hex"],

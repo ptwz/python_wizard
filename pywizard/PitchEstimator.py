@@ -11,7 +11,12 @@ class PitchEstimator(object):
     def __init__(self, buf):
         self._bestPeriod = None
         self.buf = buf
-        self._normalizedCoefficients = self.getNormalizedCoefficients()
+        if settings.pitchEstimate=="fft":
+            self._fft = self.buf.fft()
+            self.estimate = self.estimate_fft
+        else:
+            self._normalizedCoefficients = self.getNormalizedCoefficients()
+            self.estimate = self.estimate_autocorr
 
     def isOutOfRange(self):
         x = self.bestPeriod()
@@ -30,7 +35,15 @@ class PitchEstimator(object):
         else:
             return bestPeriod + .5 * ( right - left) / (2 * middle - left - right)
 
-    def estimate(self):
+    def estimate_fft(self):
+        fftlen = len(self._fft)
+        fft_half = self._fft[0:fftlen/2]
+        maximum_idx = fft_half.argsort()[-1]
+        period = int(fftlen / maximum_idx)
+        logging.debug("estimate_fft: maximum_idx={}, perid={}".format(maximum_idx, period))
+        return(period)
+
+    def estimate_autocorr(self):
         bestPeriod = int(self.bestPeriod())
         maximumMultiple = bestPeriod / self.minimumPeriod()
 
