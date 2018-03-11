@@ -38,8 +38,19 @@ class PitchEstimator(object):
     def estimate_fft(self):
         fftlen = len(self._fft)
         fft_half = self._fft[0:fftlen/2]
+        # Find all peaks
+        peak_indexes = sp.signal.find_peaks_cwt(fft_half, sp.arange(1, 10))
+        # Highest peaks first
+        peaks_sorted = sorted(peak_indexes, key=lambda x:fft_half[x], reverse=True)
+        logging.debug("found peaks in fft: {} ({})".format( [ fftlen/x for x in peaks_sorted], [ fft_half[x] for x in peaks_sorted]))
+        
         maximum_idx = fft_half.argsort()[-1]
+        if (maximum_idx == 0):
+            period = fftlen
+            return period
         period = int(fftlen / maximum_idx)
+        for i,x in zip(range(1,fftlen/2), fft_half):
+            logging.debug("estimate_fft: f {} v {}".format(fftlen/i,x))
         logging.debug("estimate_fft: maximum_idx={}, perid={}".format(maximum_idx, period))
         return(period)
 
