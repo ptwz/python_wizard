@@ -1,7 +1,6 @@
 from scipy import signal
 from scipy.io import wavfile
 import scipy as sp
-import numpy as np
 import logging
 
 class Buffer(object):
@@ -89,7 +88,6 @@ class Buffer(object):
         return sp.sqrt(x.dot(x)/x.size)
 
     def getNormalizedCoefficientsFor(self, minimumPeriod, maximumPeriod):
-        logging.debug("getCoefficientsFor minimumPeriod={} maximumPeriod={}".format(minimumPeriod, maximumPeriod))
         coefficients = [0]*(maximumPeriod+1)
 
         for lag in range(0,maximumPeriod+1):
@@ -97,12 +95,13 @@ class Buffer(object):
                 coefficients[lag] = 0.0
                 continue
 
-            corr = np.corrcoef(self.samples[lag:], self.samples[:-lag])
-            c = abs(corr[0][1])
-
-            if c <= 1e-15:
+            s = sum(self.samples[:-lag] * self.samples[lag:])
+            rmsBeginning = self.rms(self.samples[:-lag])
+            rmsEnding = self.rms(self.samples[lag:])
+            
+            if rmsBeginning * rmsEnding <= 1e-15:
                 coefficients[lag] = sp.NaN
             else:
-                coefficients[lag] = c
+                coefficients[lag] = s / (rmsBeginning * rmsEnding)
         return coefficients
 
