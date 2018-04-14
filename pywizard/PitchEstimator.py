@@ -66,7 +66,6 @@ class PitchEstimator(object):
         while not found and maximumMultiple >= 1:
             subMultiplesAreStrong = True
             for i in range(0, maximumMultiple):
-                logging.debug("estimate={} maximumMultiple={}".format(estimate, maximumMultiple))
                 subMultiplePeriod = int( sp.floor( (i+1) * estimate / maximumMultiple + .5) )
                 try:
                     curr = self._normalizedCoefficients[subMultiplePeriod]
@@ -76,8 +75,10 @@ class PitchEstimator(object):
                     subMultiplesAreStrong = False
             if subMultiplesAreStrong:
                 estimate /= maximumMultiple
+                found = True
             maximumMultiple -= 1
 
+        logging.debug("estimate={} maximumMultiple={}".format(estimate, maximumMultiple))
         return estimate
 
     def getNormalizedCoefficients(self):
