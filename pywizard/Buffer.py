@@ -96,12 +96,12 @@ class Buffer(object):
                 continue
 
             s = sum(self.samples[:-lag] * self.samples[lag:])
-            rmsBeginning = self.rms(self.samples[:-lag])
-            rmsEnding = self.rms(self.samples[lag:])
+            sumSquareBeginning = sum(np.square(self.samples[:-lag]))
+            sumSquareEnding = sum(np.square(self.samples[lag:]))
             
-            if rmsBeginning * rmsEnding <= 1e-15:
+            if sumSquareBeginning * sumSquareEnding <= 1e-15:
                 coefficients[lag] = sp.NaN
             else:
-                coefficients[lag] = s / (rmsBeginning * rmsEnding)
+                coefficients[lag] = s / np.sqrt(sumSquareBeginning * sumSquareEnding)
         return coefficients
 
