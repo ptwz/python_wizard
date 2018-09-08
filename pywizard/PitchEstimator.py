@@ -52,7 +52,6 @@ class PitchEstimator(object):
                     subMultiplesAreStrong = False
             if subMultiplesAreStrong:
                 estimate /= maximumMultiple
-                found = True
             maximumMultiple -= 1
 
         return estimate
@@ -68,6 +67,8 @@ class PitchEstimator(object):
             maximumPeriod = self.maximumPeriod()
 
             bestPeriod = self._normalizedCoefficients.index(max(self._normalizedCoefficients))
+            logging.debug("_normalizedCoefficients = {}".format(self._normalizedCoefficients))
+            logging.debug("bestPeriod={} minimumPeriod={} maximumPeriod={}".format(bestPeriod, self.minimumPeriod(), self.maximumPeriod()))
             if bestPeriod < self.minimumPeriod():
                 bestPeriod = self.minimumPeriod()
             if bestPeriod > maximumPeriod:
