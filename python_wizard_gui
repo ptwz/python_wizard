@@ -1,4 +1,5 @@
 from tkinter import *
+from tkinter import filedialog
 from tkinter.ttk import *
 import logging
 from collections import OrderedDict
@@ -37,7 +38,7 @@ class Gui(object):
         self.master.quit()
 
     def _file_open(self):
-        dlg = FileDialog.LoadFileDialog(self.master)
+        dlg = filedialog.LoadFileDialog(self.master)
         self.filename = dlg.go(pattern="*.wav")
         self.run = True
 
