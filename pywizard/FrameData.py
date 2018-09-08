@@ -1,9 +1,9 @@
-from Reflector import Reflector
+from pywizard.Reflector import Reflector
 from copy import deepcopy
-from tools import ClosestValueFinder
-from CodingTable import CodingTable
-from FrameDataBinaryEncoder import FrameDataBinaryEncoder
-from userSettings import settings
+from pywizard.tools import ClosestValueFinder
+from pywizard.CodingTable import CodingTable
+from pywizard.FrameDataBinaryEncoder import FrameDataBinaryEncoder
+from pywizard.userSettings import settings
 
 class FrameData(object):
     @classmethod

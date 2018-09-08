@@ -1,7 +1,7 @@
-from tools import BitHelpers
-from CodingTable import CodingTable
+from pywizard.tools import BitHelpers
+from pywizard.CodingTable import CodingTable
+from pywizard.HexConverter import HexConverter
 from collections import namedtuple
-from HexConverter import HexConverter
 import logging
 
 class BitPacker(object):

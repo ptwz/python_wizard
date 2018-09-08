@@ -1,12 +1,12 @@
-from Buffer import Buffer
-from Filterer import Filterer
-from Reflector import Reflector
-from Segmenter import Segmenter
-from PitchEstimator import PitchEstimator
-from userSettings import settings
-from HammingWindow import HammingWindow
-from FrameData import FrameData
-from PreEmphasizer import PreEmphasizer
+from pywizard.Buffer import Buffer
+from pywizard.Filterer import Filterer
+from pywizard.Reflector import Reflector
+from pywizard.Segmenter import Segmenter
+from pywizard.PitchEstimator import PitchEstimator
+from pywizard.userSettings import settings
+from pywizard.HammingWindow import HammingWindow
+from pywizard.FrameData import FrameData
+from pywizard.PreEmphasizer import PreEmphasizer
 import scipy as sp
 import logging
 

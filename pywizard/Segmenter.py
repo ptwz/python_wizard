@@ -1,5 +1,5 @@
-from userSettings import settings
-from Buffer import Buffer
+from pywizard.userSettings import settings
+from pywizard.Buffer import Buffer
 import scipy as sp
 
 class Segmenter(object):

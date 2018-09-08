@@ -1,4 +1,4 @@
-from userSettings import settings
+from pywizard.userSettings import settings
 
 class RMSNormalizer(object):
     @classmethod

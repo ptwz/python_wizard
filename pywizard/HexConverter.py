@@ -1,5 +1,5 @@
-from tools import formatSpecifier
-from userSettings import settings
+from pywizard.tools import formatSpecifier
+from pywizard.userSettings import settings
 import logging
 
 class HexConverter(object):

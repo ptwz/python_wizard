@@ -1,4 +1,4 @@
-from userSettings import settings
+from pywizard.userSettings import settings
 import scipy as sp
 
 class PreEmphasizer(object):

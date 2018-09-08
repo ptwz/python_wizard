@@ -1,5 +1,5 @@
 from scipy import signal
-from Buffer import Buffer
+from pywizard.Buffer import Buffer
 
 class Filterer(object):
     def __init__(self, buf, lowPassCutoffInHZ, highPassCutoffInHZ, gain, order=5, ):

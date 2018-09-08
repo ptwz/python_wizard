@@ -1,5 +1,5 @@
 from scipy import signal
-from userSettings import settings
+from pywizard.userSettings import settings
 import logging
 import scipy as sp
 
@@ -41,7 +41,8 @@ class PitchEstimator(object):
             return 0.0
         while not found and maximumMultiple >= 1:
             subMultiplesAreStrong = True
-            for i in range(0, maximumMultiple):
+            print (int(maximumMultiple))
+            for i in range(0, int(maximumMultiple)):
                 logging.debug("estimate={} maximumMultiple={}".format(estimate, maximumMultiple))
                 subMultiplePeriod = int( sp.floor( (i+1) * estimate / maximumMultiple + .5) )
                 try:

@@ -1,6 +1,6 @@
 import scipy as sp
-from CodingTable import CodingTable
-from userSettings import settings
+from pywizard.CodingTable import CodingTable
+from pywizard.userSettings import settings
 
 class Reflector(object):
     """
