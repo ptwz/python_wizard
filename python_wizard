@@ -61,7 +61,6 @@ args = parser.parse_args()
 
 if args.debug:
     logging.basicConfig(level=logging.DEBUG)
-    print vars(args)
 
 from pywizard.userSettings import settings
 from pywizard.FrameDataBinaryEncoder import BitPacker
@@ -80,4 +79,3 @@ new_varname = os.path.splitext(new_varname)[0]
 if re.match("^[^A-Za-z_]", new_varname):
     new_varname = "_"+new_varname
 
-print result.replace("FILENAME", new_varname)

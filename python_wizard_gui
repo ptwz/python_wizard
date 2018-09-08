@@ -1,7 +1,6 @@
-#! /usr/bin/env python
-from Tkinter import *
-from ttk import *
-import FileDialog
+from tkinter import *
+from tkinter.ttk import *
+import logging
 from collections import OrderedDict
 
 #from backend import BitPacker, Processor, Buffer, settings, CodingTable
@@ -127,7 +126,7 @@ class Gui(object):
         if new_cfg != raw_settings:
             for k in raw_settings:
                 if new_cfg[k] != raw_settings[k]:
-                    print k, raw_settings[k], new_cfg[k]
+                    logging.info(k, raw_settings[k], new_cfg[k])
             errors = settings.import_from_dict(new_cfg)
             if errors is None:
                 if self.filename is not None:
@@ -201,7 +200,7 @@ class Gui(object):
 
     def _scrolled(self, cmd, value, opt=None):
         frame_count = float(len(self.frames))
-        print "cmd={}, value={}, opt={}, frame_count={}".format(cmd, value, opt, frame_count)
+        logging.debug("cmd={}, value={}, opt={}, frame_count={}".format(cmd, value, opt, frame_count))
         page_size = float(self.NUM_ROWS) / frame_count
 
         if cmd == SCROLL:
@@ -219,13 +218,9 @@ class Gui(object):
         self.first_line = max(0, self.first_line)
         self.first_line = min(frame_count-self.NUM_ROWS, self.first_line)
 
-        print self.first_line
-
         self.table_scrollbar.set( *self._make_scroll_pos() )
 
-        print self.table_scrollbar.get()
         #self.first_line = int(self.table_scrollbar.get()[0] * frame_count)
-        print self.first_line
         self._update_table()
 
 
@@ -267,14 +262,12 @@ class Gui(object):
                 changed = changed or not ( int(params[p]) == int(value) )
                 params[p] = int(value)
             if changed:
-                print "Changed"
                 self._update_output()
 
     def _repeatedly(self):
         self.root.after(500, self._repeatedly)
         self.check_change()
         self._readback_table()
-        print "Hi!"
         if self.run:
             self.run = False
             b = Buffer.fromWave(self.filename)
