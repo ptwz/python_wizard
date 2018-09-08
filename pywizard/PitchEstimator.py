@@ -41,7 +41,6 @@ class PitchEstimator(object):
             return 0.0
         while not found and maximumMultiple >= 1:
             subMultiplesAreStrong = True
-            print (int(maximumMultiple))
             for i in range(0, int(maximumMultiple)):
                 logging.debug("estimate={} maximumMultiple={}".format(estimate, maximumMultiple))
                 subMultiplePeriod = int( sp.floor( (i+1) * estimate / maximumMultiple + .5) )
