@@ -2,6 +2,7 @@
 import logging
 import re
 import os
+import sys
 
 '''
 Command line application for processing WAV files into LPC data
@@ -69,6 +70,9 @@ from pywizard.Buffer import Buffer
 
 settings.import_from_argparse(args)
 b=Buffer.fromWave(args.filename)
+if b is None:
+    sys.exit()
+
 x=Processor(b)
 
 result = BitPacker.pack(x.frames)

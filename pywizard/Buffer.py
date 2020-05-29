@@ -14,7 +14,15 @@ class Buffer(object):
 
     @classmethod
     def fromWave(cls, filename):
-        (rate,data)=wavfile.read(filename)
+        try:
+            (rate,data)=wavfile.read(filename)
+        except ValueError as e:
+            logging.error("Audio data could not be read: "+str(e))
+            return None
+
+        if len(data.shape) != 1:
+            logging.error("Only mono audio files are supported, sorry")
+            return None
 
         expected_rate = 8.0e3
         downsample_factor = rate/expected_rate

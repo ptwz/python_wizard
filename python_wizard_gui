@@ -1,5 +1,5 @@
 from tkinter import *
-from tkinter import filedialog
+from tkinter import filedialog, messagebox
 from tkinter.ttk import *
 import logging
 from collections import OrderedDict
@@ -272,6 +272,9 @@ class Gui(object):
         if self.run:
             self.run = False
             b = Buffer.fromWave(self.filename)
+            if b is None:
+                messagebox.showerror("Could not read file", "The specified file could not be read!\nMust be mono, 8 or 16 bit WAV file.")
+                return
             x = Processor(b)
             self._update_table(x.frames)
             self._update_output()
