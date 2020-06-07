@@ -83,6 +83,7 @@ class Buffer(object):
         logging.debug("getCoefficientsFor max(self.samples)={}".format(max(self.samples)))
         coefficients = [0]*11
         for i in range(0,11):
+            logging.debug("i={}".format(i))
             coefficients[i] = self.aForLag(i)
         return coefficients
 
@@ -94,7 +95,7 @@ class Buffer(object):
         return sp.sqrt(x.dot(x)/x.size)
 
     def getNormalizedCoefficientsFor(self, minimumPeriod, maximumPeriod):
-        logging.debug("getCoefficientsFor minimumPeriod={} maximumPeriod={}".format(minimumPeriod, maximumPeriod))
+        logging.debug("getNormalizedCoefficientsFor minimumPeriod={} maximumPeriod={}".format(minimumPeriod, maximumPeriod))
         coefficients = [0]*(maximumPeriod+1)
 
         for lag in range(0,maximumPeriod+1):
@@ -102,7 +103,13 @@ class Buffer(object):
                 coefficients[lag] = 0.0
                 continue
 
-            corr = np.corrcoef(self.samples[lag:], self.samples[:-lag])
+            right = self.samples[lag:]
+            left = self.samples[:-lag]
+            if np.std(right)==0 or np.std(left)==0:
+                coefficients[lag] = sp.NaN
+                continue
+
+            corr = np.corrcoef(right, left)
             c = abs(corr[0][1])
 
             if c <= 1e-15:
