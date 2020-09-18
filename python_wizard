@@ -52,8 +52,13 @@ parser.add_argument("-m", "--subMultipleThreshold",
     type=float)
 parser.add_argument("-f", "--outputFormat",
     help="Output file format",
-    choices=["arduino", "C", "hex"],
+    choices=["arduino", "C", "hex", "python"],
     default="hex")
+parser.add_argument("-T", "--tablesVariant",
+    help="Tables variant",
+    choices=["tms5220", "tms5100"],
+    default="tms5220")
+
 parser.add_argument("filename",
     help="File name of a .wav file to be processed",
     action="store")
@@ -64,11 +69,14 @@ if args.debug:
     logging.basicConfig(level=logging.DEBUG)
 
 from pywizard.userSettings import settings
+settings.import_from_argparse(args)
+
 from pywizard.FrameDataBinaryEncoder import BitPacker
 from pywizard.Processor import Processor
 from pywizard.Buffer import Buffer
+#settings.import_from_argparse(args)
+from pywizard.CodingTable import CodingTable
 
-settings.import_from_argparse(args)
 b=Buffer.fromWave(args.filename)
 if b is None:
     sys.exit()

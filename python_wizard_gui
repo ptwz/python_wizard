@@ -1,6 +1,6 @@
+from tkinter.ttk import *
 from tkinter import *
 from tkinter import filedialog, messagebox
-from tkinter.ttk import *
 import logging
 from collections import OrderedDict
 
@@ -18,6 +18,8 @@ class Gui(object):
         self.root = root
         self.master = Frame(root, name='master') # create Frame in "root"
         self.filename = None
+        self.statusbar = Label(root, text="Ready…",bd=1, relief=SUNKEN, anchor=W)
+        self.statusbar.pack(side=BOTTOM, fill=X)
 
         self.output_text = None
 
@@ -33,13 +35,13 @@ class Gui(object):
         self.first_line = 0
         self.run = False
         self.frames = []
+        self.bytes=0
 
     def quit(self):
         self.master.quit()
 
     def _file_open(self):
-        dlg = filedialog.LoadFileDialog(self.master)
-        self.filename = dlg.go(pattern="*.wav")
+        self.filename = filedialog.askopenfilename(parent=self.master,filetypes=[('Waves',"*.wav")])
         self.run = True
 
 
@@ -52,6 +54,11 @@ class Gui(object):
 
         menu_file.add_command(label="Open WAV", command=self._file_open)
         menu_file.add_command(label="Quit", command=self.quit)
+        
+        # menu_play = Menu(menubar)
+        # menubar.add_cascade(menu=menu_play,label="Play")
+        menubar.add_command(label="Play",command=self.play)
+        
 
         return menubar
 
@@ -127,7 +134,7 @@ class Gui(object):
         if new_cfg != raw_settings:
             for k in raw_settings:
                 if new_cfg[k] != raw_settings[k]:
-                    logging.info(k, raw_settings[k], new_cfg[k])
+                    logging.info(f"{k}, {raw_settings[k]}, {new_cfg[k]}")
             errors = settings.import_from_dict(new_cfg)
             if errors is None:
                 if self.filename is not None:
@@ -160,18 +167,24 @@ class Gui(object):
         for (p,col) in zip(parameters, range(len(parameters))):
             p = p[10:]
             Label(table_data, text=p).grid(row=1, column=col+2)
-
+        Label(table_data, text='size').grid(row=1, column=col+1 + 2)
+        
         table_vars = {}
         table_labels = {}
         for row in range(self.NUM_ROWS):
             table_labels[row] = StringVar()
             table_labels[row].set(str(row))
-            Label(table_data, textvariable=table_labels[row]).grid(row=row+2, column=1)
+            Label(table_data, textvariable=table_labels[row]).grid(row=row+2, column=1,padx=5)
+            
             for (p, col) in zip(parameters, range(len(parameters))):
                 v = IntVar()
                 e = Entry(table_data, width=5, textvariable=v)
                 table_vars[ (row, p) ] = v
                 e.grid(row=row+2, column=col+2)
+            v = IntVar()
+            size=Label(table_data,width=5,textvariable=v)
+            table_vars[(row, 'size')] = v
+            size.grid(row=row+2, column=col+1+2)
         self.table_labels = table_labels
         table.pack()
 
@@ -217,7 +230,7 @@ class Gui(object):
                 self.first_line = frame_count - self.NUM_ROWS
 
         self.first_line = max(0, self.first_line)
-        self.first_line = min(frame_count-self.NUM_ROWS, self.first_line)
+        self.first_line = int(min(frame_count-self.NUM_ROWS, self.first_line))
 
         self.table_scrollbar.set( *self._make_scroll_pos() )
 
@@ -247,12 +260,19 @@ class Gui(object):
         return zip(range(0, self.NUM_ROWS), range(self.first_line,l), frames[self.first_line:l])
 
     def _update_table(self, frames = None):
+        prev=0
+        parameters = CodingTable.parameters()
         for (line, n, frame) in self._table_iterator(frames):
             params = frame.parameters()
             self.table_labels[line].set( str(n) )
+            for p in parameters:
+                self.table_vars[(line, p)].set(0)
             for p in params:
                 self.table_vars[ (line, p) ].set(params[p])
-
+            if (line-1, 'size') in self.table_vars:
+                prev=self.table_vars[(line-1, 'size')].get()
+            self.table_vars[(line, 'size')].set(prev+15)
+            
     def _readback_table(self, frames = None):
         for (line, n, frame) in self._table_iterator(frames):
             params = frame.parameters()
@@ -261,6 +281,8 @@ class Gui(object):
             for p in params:
                 value = self.table_vars[ (line, p) ].get()
                 changed = changed or not ( int(params[p]) == int(value) )
+                if not (int(params[p]) == int(value)):
+                    print(p, value)
                 params[p] = int(value)
             if changed:
                 self._update_output()
@@ -284,10 +306,38 @@ class Gui(object):
             self.output_text.delete(1.0, END)
             self.output_text.insert(END, result)
 
+    def play(self):
+        import ast
+        result = BitPacker.pack(self.frames)
+        encoded_frames=ast.literal_eval(result)
+        self.statusbar['text'] = str(len(encoded_frames)) + " bytes"
+        import sys
+        sys.path.insert(0, '../../')
+        from lpcplayer import player,tables
+        import pyaudio
+        player = player.LpcDecoder(tables.tms5100 if settings.tablesVariant=='tms5100' else tables.tms5220)
+        samples=player.decode(encoded_frames)
+        # instantiate PyAudio (1)
+        p = pyaudio.PyAudio()
+        # open stream (2)
+        stream = p.open(format=pyaudio.paUInt8, channels=1, rate=8000, output=True)
+        # play stream (3)
+        stream.write(bytes(samples))
+        # stop stream (4)
+        stream.stop_stream()
+        stream.close()
+        # close PyAudio (5)
+        p.terminate()
+
     def mainloop(self):
         self.root.after(500, self._repeatedly)
         self.master.mainloop()
 
+settings.outputFormat='python'
+settings.tablesVariant='tms5100'
+
+
+logging.basicConfig(level=logging.INFO)
 # start the app
 root = Tk() # create a top-level window
 gui = Gui(root)
