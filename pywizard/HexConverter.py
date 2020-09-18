@@ -15,7 +15,11 @@ class HexConverter(object):
         "hex"     : formatSpecifier("",
                      "{:02x}",
                      " ",
-                     "")
+                     ""),
+        "python" : formatSpecifier("(",
+                     "0x{:02X}",
+                     ",",
+                     ")"),
                     }
 
     @classmethod
