@@ -1,3 +1,23 @@
+### Updates to base python_wizard
+
+- Added "lpcplayer" package (based on talkie) to support Play feature in GUI. 
+
+- Added dirty support for other LPC coding tables. TMS5100 is default now.
+  ```
+    -T {tms5220,tms5100}, --tablesVariant {tms5220,tms5100}
+                          Tables variant
+  ```                        
+
+- Support for python formatted output
+  ```
+    -f {arduino,C,hex,python}, --outputFormat {arduino,C,hex,python}
+                          Output file format
+  ```
+- Small fixes and enhancements in GUI
+
+
+
+------
 This project is a python port of the great macOS tool BlueWizard (https://github.com/patrick99e99/BlueWizard), which is written in objective C and I was not familiar enough with this C dialect to make an portable command line application out of it.
 
 It is intended to convert (voice) audio streams into LPC bitstreams used in the TMS 5220 chip or e.g. in the Arduino library Talkie. Now you can generate your own LPC streams and make your chips say the things you want them to.
@@ -11,6 +31,7 @@ Prerequisites:
 - SciPy >= 0.18.1
 
 Usage: 
+```
        python_wizard.py [-h] [-u UNVOICEDTHRESHOLD] [-w WINDOWWIDTH] [-U] [-V]
                         [-S] [-p] [-a PREEMPHASISALPHA] [-d] [-r PITCHRANGE]
                         [-F FRAMERATE] [-m SUBMULTIPLETHRESHOLD]
@@ -44,3 +65,5 @@ optional arguments:
                         sub-multiple threshold
   -f {arduino,C,hex}, --outputFormat {arduino,C,hex}
                         Output file format
+```
+

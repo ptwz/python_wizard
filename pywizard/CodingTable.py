@@ -1,3 +1,5 @@
+from pywizard.userSettings import settings
+
 class CodingTable(object):
     kStopFrameIndex = 15
 
@@ -28,7 +30,6 @@ class CodingTable(object):
     rms = ( 0.0, 52.0, 87.0, 123.0, 174.0, 246.0, 348.0, 491.0, 694.0, 981.0, 1385.0, 1957.0, 2764.0, 3904.0, 5514.0, 7789.0)
 
     pitch = ( 0.0, 1.0, 16.0, 17.0, 18.0, 19.0, 20.0, 21.0, 22.0, 23.0, 24.0, 25.0, 26.0, 27.0, 28.0, 29.0, 30.0, 31.0, 32.0, 33.0, 34.0, 35.0, 36.0, 36.0, 38.0, 39.0, 40.0, 41.0, 42.0, 44.0, 46.0, 48.0, 50.0, 52.0, 53.0, 56.0, 58.0, 60.0, 62.0, 65.0, 67.0, 70.0, 72.0, 75.0, 78.0, 80.0, 83.0, 86.0, 89.0, 93.0, 97.0, 100.0, 104.0, 108.0, 113.0, 117.0, 121.0, 126.0, 131.0, 135.0, 140.0, 146.0, 151.0, 157)
-
 
     @classmethod
     def kSizeFor(cls, k):
@@ -69,3 +70,17 @@ class CodingTable(object):
 
     bits = ( 4, 1, 6, 5, 5, 4, 4, 4, 4, 4, 3, 3, 3)
 
+if settings.tablesVariant=="tms5100":
+    from lpcplayer.tables import tms5100
+    
+    for k in range(1,11):
+        ks=list(tms5100.ktable[k-1])
+        for i, k_value in enumerate(ks):
+            ks[i]=k_value/512
+        setattr(CodingTable, 'k'+str(k), ks)
+
+    CodingTable.pitch=tms5100.pitchtable
+    CodingTable.bits=(tms5100.energy_bits,)\
+                     +(1,)\
+                     +(tms5100.pitch_bits,)\
+                     + tms5100.kbits
