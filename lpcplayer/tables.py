@@ -228,3 +228,9 @@ tms5220 = tms_coeffs(
     TI_LATER_CHIRP,
     TI_INTERP
 )
+
+tables = {"tms5100": tms5100,
+          "tms5110a": tms5110a,
+          "tms5200": tms5200,
+          "tms5220": tms5220,
+         }
