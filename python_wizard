@@ -3,6 +3,7 @@ import logging
 import re
 import os
 import sys
+from lpcplayer.tables import tables
 
 '''
 Command line application for processing WAV files into LPC data
@@ -56,7 +57,7 @@ parser.add_argument("-f", "--outputFormat",
     default="hex")
 parser.add_argument("-T", "--tablesVariant",
     help="Tables variant",
-    choices=["tms5220", "tms5100"],
+    choices=tables.keys(),
     default="tms5220")
 
 parser.add_argument("filename",
@@ -81,7 +82,7 @@ b=Buffer.fromWave(args.filename)
 if b is None:
     sys.exit()
 
-x=Processor(b)
+x=Processor(b, args.tablesVariant)
 
 result = BitPacker.pack(x)
 

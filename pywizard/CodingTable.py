@@ -6,7 +6,7 @@ class CodingTable(object):
 
     rms = ( 0.0, 52.0, 87.0, 123.0, 174.0, 246.0, 348.0, 491.0, 694.0, 981.0, 1385.0, 1957.0, 2764.0, 3904.0, 5514.0, 7789.0)
 
-    def __init__(self, name="tms5220"):
+    def __init__(self, name):
         chip = tables[name]
 
         for k in range(1,11):

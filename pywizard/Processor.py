@@ -16,7 +16,7 @@ class Processor(object):
         self.mainBuffer = buf
         self.pitchTable = None
         self.pitchBuffer = Buffer.copy(buf)
-        self.codingTable = CodingTable()
+        self.codingTable = CodingTable(model)
 
         if settings.preEmphasis:
             PreEmphasizer.processBuffer(buf)
