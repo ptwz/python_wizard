@@ -83,7 +83,7 @@ if b is None:
 
 x=Processor(b)
 
-result = BitPacker.pack(x.frames)
+result = BitPacker.pack(x)
 
 new_varname = os.path.basename(args.filename)
 new_varname = os.path.splitext(new_varname)[0]

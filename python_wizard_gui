@@ -15,6 +15,7 @@ class Gui(object):
     NUM_ROWS = 15
 
     def __init__(self, root):
+        self.codingTable = CodingTable()
         self.root = root
         self.master = Frame(root, name='master') # create Frame in "root"
         self.filename = None
@@ -36,6 +37,7 @@ class Gui(object):
         self.run = False
         self.frames = []
         self.bytes=0
+
 
     def quit(self):
         self.master.quit()
@@ -163,7 +165,7 @@ class Gui(object):
         table.pack(side="left")
 
         # Create header
-        parameters = CodingTable.parameters()
+        parameters = self.codingTable.parameters()
         for (p,col) in zip(parameters, range(len(parameters))):
             p = p[10:]
             Label(table_data, text=p).grid(row=1, column=col+2)
@@ -261,7 +263,7 @@ class Gui(object):
 
     def _update_table(self, frames = None):
         prev=0
-        parameters = CodingTable.parameters()
+        parameters = self.codingTable.parameters()
         for (line, n, frame) in self._table_iterator(frames):
             params = frame.parameters()
             self.table_labels[line].set( str(n) )

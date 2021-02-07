@@ -1,5 +1,4 @@
 import scipy as sp
-from pywizard.CodingTable import CodingTable
 from pywizard.userSettings import settings
 
 class Reflector(object):
@@ -10,20 +9,23 @@ class Reflector(object):
     Test if stop frames do not accidentally created
     >>> from CodingTable import CodingTable
 
+    >>> ct = CodingTable()
+
     >>> r = Reflector()
 
-    >>> r.rms = CodingTable.rms[15]
+    >>> r.rms = ct.rms[15]
 
     >>> r.limitRMS = True
 
-    >>> r.rms == CodingTable.rms[14]
+    >>> r.rms == ct.rms[14]
     True
     """
     kNumberOfKParameters = 11
 
-    def __init__(self, k=None, rms=None, limitRMS=None):
+    def __init__(self, codingTable, k=None, rms=None, limitRMS=None):
         # TODO From config!!
         self.unvoicedThreshold = settings.unvoicedThreshold
+        self.codingTable = codingTable
         if (k is None):
             assert(rms is None)
             assert(limitRMS is None)
@@ -41,7 +43,7 @@ class Reflector(object):
         return sp.sqrt( rms / numberOfSamples) * ( 1 << 15 )
 
     @classmethod
-    def translateCoefficients(cls, r, numberOfSamples):
+    def translateCoefficients(cls, codingTable, r, numberOfSamples):
         '''Leroux Guegen algorithm for finding K's'''
 
         k = [0.0] * 11;
@@ -65,13 +67,13 @@ class Reflector(object):
             d[i + 1] = d[i] + (k[i] * y)
             d[i] = b[i]
         rms = cls.formattedRMS( d[11], numberOfSamples )
-        return cls(k=k, rms=rms, limitRMS=True )
+        return cls(codingTable, k=k, rms=rms, limitRMS=True )
 
 
     @property
     def rms(self):
-        if self.limitRMS and self._rms >= CodingTable.rms[CodingTable.kStopFrameIndex - 1]:
-            return CodingTable.rms[CodingTable.kStopFrameIndex - 1]
+        if self.limitRMS and self._rms >= self.codingTable.rms[self.codingTable.kStopFrameIndex - 1]:
+            return self.codingTable.rms[CodingTable.kStopFrameIndex - 1]
         else:
             return self._rms
 

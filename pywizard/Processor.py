@@ -7,14 +7,16 @@ from pywizard.userSettings import settings
 from pywizard.HammingWindow import HammingWindow
 from pywizard.FrameData import FrameData
 from pywizard.PreEmphasizer import PreEmphasizer
+from pywizard.CodingTable import CodingTable
 import scipy as sp
 import logging
 
 class Processor(object):
-    def __init__(self, buf):
+    def __init__(self, buf, model=None):
         self.mainBuffer = buf
         self.pitchTable = None
         self.pitchBuffer = Buffer.copy(buf)
+        self.codingTable = CodingTable()
 
         if settings.preEmphasis:
             PreEmphasizer.processBuffer(buf)
@@ -34,7 +36,7 @@ class Processor(object):
         for (cur_buf, i) in segmenter.eachSegment():
             HammingWindow.processBuffer(cur_buf)
             coefficients = cur_buf.getCoefficientsFor()
-            reflector = Reflector.translateCoefficients(coefficients, cur_buf.size)
+            reflector = Reflector.translateCoefficients(self.codingTable, coefficients, cur_buf.size)
 
             if wrappedPitch:
                 pitch = int(wrappedPitch)
@@ -46,7 +48,7 @@ class Processor(object):
             frames.append(frameData)
 
         if settings.includeExplicitStopFrame:
-            frames.append(FrameData.stopFrame())
+            frames.append(frameData.stopFrame())
 
         self.frames = frames
 

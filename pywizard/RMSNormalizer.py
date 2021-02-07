@@ -2,7 +2,7 @@ from pywizard.userSettings import settings
 
 class RMSNormalizer(object):
     @classmethod
-    def normalize(cls, frameData, Voiced):
+    def normalize(cls, codingTable, frameData, Voiced):
         """
         Normalize Voice levels to maximum RMS.
 
@@ -12,9 +12,11 @@ class RMSNormalizer(object):
 
         >>> from CodingTable import CodingTable
 
+        >>> ct = CodingTable()
+
         >>> r = Reflector()
         
-        >>> rms = CodingTable.rms[2]
+        >>> rms = ct.rms[2]
 
         >>> RMSNormalizer.maxRMSIndex
         3
@@ -23,7 +25,7 @@ class RMSNormalizer(object):
 
         >>> RMSNormalizer.normalize([framedata], Voiced=True)
 
-        >>> reflector.rms == CodingTable.rms[3]
+        >>> reflector.rms == ct.rms[3]
         True
         """
         maximum = max( [ x.rms for x in frameData if x.isVoiced() == Voiced ] )
@@ -35,7 +37,7 @@ class RMSNormalizer(object):
             ref = cls.maxRMSIndex()
         else:
             ref = cls.maxUnvoicedRMSIndex()
-        scale = CodingTable.rms[cls.ref] / maximum
+        scale = codingTable.rms[cls.ref] / maximum
 
         for frame in FrameData:
             if not frame.reflector.isVoiced() == Voiced:

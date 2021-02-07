@@ -1,16 +1,14 @@
 from pywizard.Reflector import Reflector
 from copy import deepcopy
 from pywizard.tools import ClosestValueFinder
-from pywizard.CodingTable import CodingTable
 from pywizard.FrameDataBinaryEncoder import FrameDataBinaryEncoder
 from pywizard.userSettings import settings
 
 class FrameData(object):
-    @classmethod
-    def stopFrame(cls):
-        reflector = Reflector()
-        reflector.rms = CodingTable.rms[CodingTable.kStopFrameIndex]
-        fd = cls(reflector=reflector, pitch=0, repeat=False)
+    def stopFrame(self):
+        reflector = Reflector(self.codingTable)
+        reflector.rms = self.codingTable.rms[self.codingTable.kStopFrameIndex]
+        fd = FrameData(reflector=reflector, pitch=0, repeat=False)
         fd.decodeFrame = False
         fd.stopFrame = True
         return fd
@@ -27,8 +25,9 @@ class FrameData(object):
 
     def __init__(self, reflector, pitch, repeat, parameters=None):
         self.reflector = reflector
+        self.codingTable = reflector.codingTable
         self.pitch = pitch
-        self.stopFrame = False
+        self._stopFrame = False
         self.decodeFrame = False
         self.repeat = repeat
         self._parameters = parameters
@@ -67,7 +66,7 @@ class FrameData(object):
         if parameter == 'kParameterGain':
             if translatedValue is None:
                 index = int(value)
-                rms = CodingTable.rms(index)
+                rms = self.codingTable.rms(index)
             else:
                 rms = translatedValue
             self.reflector.rms = float(rms)
@@ -77,7 +76,7 @@ class FrameData(object):
 
         elif parameter == "kParameterPitch":
             if translatedValue is None:
-                pitch = CodingTable.pitch[int(value)]
+                pitch = self.codingTable.pitch[int(value)]
             else:
                 pitch = translatedValue
             self.pitch = float(pitch)
@@ -86,23 +85,23 @@ class FrameData(object):
             bin_no = int(parameter[1])
             if translatedValue is None:
                 index = int(value)
-                k = CodingTable.kBinFor(index)
+                k = self.codingTable.kBinFor(index)
                 l = k[index]
             else:
                 l = float(translatedValue)
             self.reflector.ks[bin_no] = float(l)
 
     def parameterizedValueForK(self, k, bin_no, translate):
-        index = ClosestValueFinder(k, table=CodingTable.kBinFor(bin_no))
+        index = ClosestValueFinder(k, table=self.codingTable.kBinFor(bin_no))
         if translate:
-            return CodingTable.kBinFor(bin_no)[index]
+            return self.codingTable.kBinFor(bin_no)[index]
         else:
             return index
 
     def parameterizedValueForRMS(self, rms, translate):
-        index = ClosestValueFinder(rms, table=CodingTable.rms)
+        index = ClosestValueFinder(rms, table=self.codingTable.rms)
         if translate:
-            return CodingTable.rms[index]
+            return self.codingTable.rms[index]
         else:
             return index
 
@@ -113,7 +112,7 @@ class FrameData(object):
                 return 0
             if settings.overridePitch:
                 index = int(settings.overridePitch)
-                return CodingTable.pitch[index]
+                return sefl.codingTable.pitch[index]
         elif self.reflector.isUnvoiced() or pitch==0:
             return 0
 
@@ -122,7 +121,7 @@ class FrameData(object):
         else:
             offset = settings.pitchOffset
 
-        index = ClosestValueFinder(pitch, table=CodingTable.pitch)
+        index = ClosestValueFinder(pitch, table=self.codingTable.pitch)
 
         index += offset
 
@@ -130,7 +129,7 @@ class FrameData(object):
         if index < 0: index = 0
 
         if translate:
-            return CodingTable.pitch[index]
+            return self.codingTable.pitch[index]
         else:
             return index
 
@@ -138,7 +137,7 @@ class FrameData(object):
         return bool(repeat)
 
     def kParametersFrom(self, frm, to, translate):
-        if self.stopFrame: return None
+        if self._stopFrame: return None
         parameters = {}
         for k in range(frm, to+1):
             key = self.parameterKeyForK(k)

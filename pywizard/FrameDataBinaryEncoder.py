@@ -1,5 +1,4 @@
 from pywizard.tools import BitHelpers
-from pywizard.CodingTable import CodingTable
 from pywizard.HexConverter import HexConverter
 from collections import namedtuple
 import logging
@@ -7,19 +6,20 @@ import logging
 class BitPacker(object):
 
     @classmethod
-    def pack(cls, frameData):
+    def pack(cls, processor):
+        frameData = processor.frames
         parametersList = [ x.parameters() for x in frameData ]
-        binary = FrameDataBinaryEncoder.process(parametersList)
+        binary = FrameDataBinaryEncoder.process(processor.codingTable, parametersList)
         hexform = HexConverter.process(binary)
         return hexform
 
 class FrameDataBinaryEncoder(object):
     @classmethod
-    def process(cls, parametersList):
-        bits = CodingTable.bits
+    def process(cls, codingTable, parametersList):
+        bits = codingTable.bits
         binary = ""
         for parameters in parametersList:
-            params = CodingTable.parameters()
+            params = codingTable.parameters()
             for (param_name, idx) in zip(params, range(len(params))):
                 if param_name not in parameters:
                     break
