@@ -15,7 +15,7 @@ class Gui(object):
     NUM_ROWS = 15
 
     def __init__(self, root):
-        self.codingTable = CodingTable()
+        self.codingTable = CodingTable(settings.tablesVariant)
         self.root = root
         self.master = Frame(root, name='master') # create Frame in "root"
         self.filename = None
@@ -295,23 +295,23 @@ class Gui(object):
         self._readback_table()
         if self.run:
             self.run = False
+            self.codingTable = CodingTable(settings.tablesVariant)
             b = Buffer.fromWave(self.filename)
             if b is None:
                 messagebox.showerror("Could not read file", "The specified file could not be read!\nMust be mono, 8 or 16 bit WAV file.")
                 return
-            x = Processor(b)
-            self._update_table(x.frames)
+            self.processor = Processor(b, settings.tablesVariant)
+            self._update_table(self.processor.frames)
             self._update_output()
 
     def _update_output(self):
-            result = BitPacker.pack(self.frames)
+            result = BitPacker.pack(self.processor)
             self.output_text.delete(1.0, END)
             self.output_text.insert(END, result)
 
     def play(self):
-        import ast
-        result = BitPacker.pack(self.frames)
-        encoded_frames=ast.literal_eval(result)
+        encoded_frames = BitPacker.raw_stream(self.processor)
+        print(encoded_frames)
         self.statusbar['text'] = str(len(encoded_frames)) + " bytes"
         import sys
         sys.path.insert(0, '../../')

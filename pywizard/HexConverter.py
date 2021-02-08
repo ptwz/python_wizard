@@ -23,18 +23,22 @@ class HexConverter(object):
                     }
 
     @classmethod
-    def process(cls, nibbles):
+    def preprocess(cls, nibbles):
         '''
         Creates nibble swapped, reversed data bytestream as hex value list.
         Used to be NibbleBitReverser, NibbleSwitcher and HexConverter
         '''
-        formatter = cls.formats[settings.outputFormat]
         result = []
         for u,l in zip(nibbles[0::2], nibbles[1::2]):
             raw = (u+l)[::-1]
-            data = int(raw, base=2)
-            result.append(formatter.formatString.format(data))
+            result.append(int(raw, base=2))
+        return result
+
+    @classmethod
+    def process(cls, nibbles):
+        formatter = cls.formats[settings.outputFormat]
         logging.debug("Will format output using {} ({})".format(settings.outputFormat, formatter ))
+        result=[ formatter.formatString.format(data) for data in cls.preprocess(nibbles) ]
         return formatter.header + formatter.separator.join(result) + formatter.trailer
 
 

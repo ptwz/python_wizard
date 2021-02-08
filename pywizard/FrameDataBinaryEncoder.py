@@ -6,12 +6,18 @@ import logging
 class BitPacker(object):
 
     @classmethod
+    def raw_stream(cls, processor):
+        frameData = processor.frames
+        parametersList = [ x.parameters() for x in frameData ]
+        raw_data = FrameDataBinaryEncoder.process(processor.codingTable, parametersList)
+        return HexConverter.preprocess(raw_data)
+
+    @classmethod
     def pack(cls, processor):
         frameData = processor.frames
         parametersList = [ x.parameters() for x in frameData ]
-        binary = FrameDataBinaryEncoder.process(processor.codingTable, parametersList)
-        hexform = HexConverter.process(binary)
-        return hexform
+        raw_data = FrameDataBinaryEncoder.process(processor.codingTable, parametersList)
+        return HexConverter.process(raw_data)
 
 class FrameDataBinaryEncoder(object):
     @classmethod

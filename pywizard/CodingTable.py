@@ -36,7 +36,8 @@ class CodingTable(object):
         mapping = { 1:self.k1, 2:self.k2, 3:self.k3, 4:self.k4, 5:self.k5, 6:self.k6, 7:self.k7, 8:self.k8, 9:self.k9, 10:self.k10}
         return mapping[k]
 
-    def parameters(self):
+    @classmethod
+    def parameters(cls):
         return [
              'kParameterGain',
              'kParameterRepeat',

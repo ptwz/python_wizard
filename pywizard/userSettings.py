@@ -6,7 +6,7 @@ class userSettings(object):
         "normalizeUnvoicedRMS", "normalizeUnvoicedRMS", "includeExplicitStopFrame",
         "preEmphasis", "preEmphasisAlpha", "overridePitch", "pitchOffset",
         "minimumPitchInHZ", "maximumPitchInHZ", "frameRate",
-        "subMultipleThreshold", "outputFormat", "rmsLimit","tablesVariant"]
+        "subMultipleThreshold", "outputFormat", "rmsLimit", "tablesVariant"]
     pitchValue = 0
     unvoicedThreshold = 0.3
     windowWidth = 2
