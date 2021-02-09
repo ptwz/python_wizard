@@ -3,6 +3,10 @@ from tkinter import *
 from tkinter import filedialog, messagebox
 import logging
 from collections import OrderedDict
+try:
+        import pyaudio
+except ModuleNotFoundError:
+        pyaudio = None
 
 #from backend import BitPacker, Processor, Buffer, settings, CodingTable
 from pywizard.FrameDataBinaryEncoder import BitPacker
@@ -59,7 +63,8 @@ class Gui(object):
         
         # menu_play = Menu(menubar)
         # menubar.add_cascade(menu=menu_play,label="Play")
-        menubar.add_command(label="Play",command=self.play)
+        if pyaudio:
+            menubar.add_command(label="Play",command=self.play)
         
 
         return menubar
@@ -311,12 +316,8 @@ class Gui(object):
 
     def play(self):
         encoded_frames = BitPacker.raw_stream(self.processor)
-        print(encoded_frames)
         self.statusbar['text'] = str(len(encoded_frames)) + " bytes"
-        import sys
-        sys.path.insert(0, '../../')
         from lpcplayer import player,tables
-        import pyaudio
         player = player.LpcDecoder(tables.tms5100 if settings.tablesVariant=='tms5100' else tables.tms5220)
         samples=player.decode(encoded_frames)
         # instantiate PyAudio (1)
