@@ -8,7 +8,7 @@ setup(
     url = 'http://github.com/ptwz/python_wizard',
     author = 'Peter Turczak (python port), Patrick J. Collins (original code and most of the work), Special thanks to: Richard Wiggins Jonathan Gevaryahu Gene Frantz Frank Palazzolo',
     license = 'MIT',
-    packages = ["pywizard"],
+    packages = ["pywizard", "lpcplayer"],
     install_requires=['scipy'],
     python_requires = '>=3.5',
     scripts = ['python_wizard', 'python_wizard_gui']
