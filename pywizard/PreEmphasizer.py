@@ -1,5 +1,5 @@
 from pywizard.userSettings import settings
-import scipy as sp
+import numpy as np
 
 class PreEmphasizer(object):
     @classmethod
@@ -12,7 +12,7 @@ class PreEmphasizer(object):
 
         first_sample = buf.samples[0]
         buf.samples = buf.samples[1:] + (buf.samples[:-1] * alpha)
-        buf.samples = sp.insert(buf.samples, 0, first_sample)
+        buf.samples = np.insert(buf.samples, 0, first_sample)
 
         cls.scaleBuffer(buf, preEnergy, buf.energy())
 
@@ -22,7 +22,7 @@ class PreEmphasizer(object):
 
     @classmethod
     def scaleBuffer(cls, buf, preEnergy, postEnergy):
-        scale = sp.sqrt(preEnergy / postEnergy)
+        scale = np.sqrt(preEnergy / postEnergy)
 
         buf.samples *= scale
 

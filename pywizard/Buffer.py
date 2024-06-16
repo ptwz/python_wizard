@@ -28,7 +28,7 @@ class Buffer(object):
         downsample_factor = rate/expected_rate
         assert(downsample_factor>=1)
 
-        d2 = sp.array(data, 'float')
+        d2 = np.array(data, 'float')
         if data.dtype.name == 'int16':
             d2 /= 2**15
         elif data.dtype.name == 'int32':
@@ -53,9 +53,9 @@ class Buffer(object):
             # Equivalent to initWithSize
             assert( size is not None and sampleRate is not None)
             self.size = size
-            self.samples = sp.zeros(samples, dtype=float)
+            self.samples = np.zeros(samples, dtype=float)
         else:
-            self.samples = sp.array(samples)
+            self.samples = np.array(samples)
             self.size = len(self.samples)
 
         if start is None:
@@ -77,7 +77,7 @@ class Buffer(object):
         return self.sumOfSquaresFor()
 
     def sumOfSquaresFor(self):
-        return sp.square(self.samples[self.start:self.end]).sum()
+        return np.square(self.samples[self.start:self.end]).sum()
 
     def getCoefficientsFor(self):
         logging.debug("getCoefficientsFor max(self.samples)={}".format(max(self.samples)))
@@ -92,7 +92,7 @@ class Buffer(object):
         return sum(self.samples[0:samples] * self.samples[lag:samples+lag])
 
     def rms(self, x):
-        return sp.sqrt(x.dot(x)/x.size)
+        return np.sqrt(x.dot(x)/x.size)
 
     def getNormalizedCoefficientsFor(self, minimumPeriod, maximumPeriod):
         logging.debug("getNormalizedCoefficientsFor minimumPeriod={} maximumPeriod={}".format(minimumPeriod, maximumPeriod))
@@ -106,14 +106,14 @@ class Buffer(object):
             right = self.samples[lag:]
             left = self.samples[:-lag]
             if np.std(right)==0 or np.std(left)==0:
-                coefficients[lag] = sp.NaN
+                coefficients[lag] = np.NaN
                 continue
 
             corr = np.corrcoef(right, left)
             c = abs(corr[0][1])
 
             if c <= 1e-15:
-                coefficients[lag] = sp.NaN
+                coefficients[lag] = np.NaN
             else:
                 coefficients[lag] = c
         return coefficients

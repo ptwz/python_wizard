@@ -8,7 +8,7 @@ from pywizard.HammingWindow import HammingWindow
 from pywizard.FrameData import FrameData
 from pywizard.PreEmphasizer import PreEmphasizer
 from pywizard.CodingTable import CodingTable
-import scipy as sp
+import numpy as np
 import logging
 
 class Processor(object):
@@ -28,7 +28,7 @@ class Processor(object):
         else:
             self.pitchTable = self.pitchTableForBuffer(self.pitchBuffer)
 
-        coefficients = sp.zeros(11)
+        coefficients = np.zeros(11)
 
         segmenter = Segmenter(buf=self.mainBuffer, windowWidth=settings.windowWidth)
 
@@ -57,7 +57,7 @@ class Processor(object):
         buf = filterer.process()
 
         segmenter = Segmenter(buf, windowWidth=2)
-        pitchTable = sp.zeros(segmenter.numberOfSegments())
+        pitchTable = np.zeros(segmenter.numberOfSegments())
 
         for (buf, index) in segmenter.eachSegment():
             pitchTable[index] = PitchEstimator.pitchForPeriod(buf)

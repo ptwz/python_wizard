@@ -1,7 +1,7 @@
 from scipy import signal
 from pywizard.userSettings import settings
 import logging
-import scipy as sp
+import numpy as np
 
 class PitchEstimator(object):
     @classmethod
@@ -37,13 +37,13 @@ class PitchEstimator(object):
         found = False
 
         estimate = self.interpolated()
-        if sp.isnan(estimate):
+        if np.isnan(estimate):
             return 0.0
         while not found and maximumMultiple >= 1:
             subMultiplesAreStrong = True
             for i in range(0, int(maximumMultiple)):
                 logging.debug("estimate={} maximumMultiple={}".format(estimate, maximumMultiple))
-                subMultiplePeriod = int( sp.floor( (i+1) * estimate / maximumMultiple + .5) )
+                subMultiplePeriod = int( np.floor( (i+1) * estimate / maximumMultiple + .5) )
                 try:
                     curr = self._normalizedCoefficients[subMultiplePeriod]
                 except IndexError:
@@ -85,10 +85,10 @@ class PitchEstimator(object):
         return settings.minimumPitchInHZ
 
     def minimumPeriod(self):
-        return int(sp.floor(self.buf.sampleRate / settings.maximumPitchInHZ - 1))
+        return int(np.floor(self.buf.sampleRate / settings.maximumPitchInHZ - 1))
 
     def maximumPeriod(self):
-        return int(sp.floor(self.buf.sampleRate / settings.minimumPitchInHZ + 1))
+        return int(np.floor(self.buf.sampleRate / settings.minimumPitchInHZ + 1))
 
 
 def ClosestValueFinder(actual, table):

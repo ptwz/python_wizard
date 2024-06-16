@@ -1,11 +1,11 @@
 from pywizard.userSettings import settings
 from pywizard.Buffer import Buffer
-import scipy as sp
+import numpy as np
 
 class Segmenter(object):
     def __init__(self, buf, windowWidth):
         milliseconds = settings.frameRate
-        self.size = int(sp.ceil(buf.sampleRate / 1e3 * milliseconds))
+        self.size = int(np.ceil(buf.sampleRate / 1e3 * milliseconds))
         self.buf = buf
         self.windowWidth = windowWidth
 
@@ -20,7 +20,7 @@ class Segmenter(object):
         length = self.sizeForWindow()
 
         samples = self.buf.samples[ index * self.size : index * self.size + length ]
-        samples = sp.append(samples, [0]*(length-len(samples)))
+        samples = np.append(samples, [0]*(length-len(samples)))
 
         return samples
 
@@ -28,5 +28,5 @@ class Segmenter(object):
         return int(self.size * self.windowWidth)
 
     def numberOfSegments(self):
-        return int(sp.ceil(float(self.buf.size) / float(self.size)))
+        return int(np.ceil(float(self.buf.size) / float(self.size)))
 

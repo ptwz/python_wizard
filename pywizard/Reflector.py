@@ -1,4 +1,4 @@
-import scipy as sp
+import numpy as np
 from pywizard.userSettings import settings
 
 class Reflector(object):
@@ -40,7 +40,7 @@ class Reflector(object):
 
     @classmethod
     def formattedRMS(cls, rms, numberOfSamples):
-        return sp.sqrt( rms / numberOfSamples) * ( 1 << 15 )
+        return np.sqrt( rms / numberOfSamples) * ( 1 << 15 )
 
     @classmethod
     def translateCoefficients(cls, codingTable, r, numberOfSamples):
