@@ -9,7 +9,7 @@ from pywizard.FrameData import FrameData
 from pywizard.PreEmphasizer import PreEmphasizer
 from pywizard.CodingTable import CodingTable
 import numpy as np
-import logging
+
 
 class Processor(object):
     def __init__(self, buf, model=None):
@@ -64,7 +64,6 @@ class Processor(object):
 
         return pitchTable
 
-
     def process(self):
-        return(self.frameData)
+        return self.frameData
 

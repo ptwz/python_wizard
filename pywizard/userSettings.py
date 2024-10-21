@@ -1,12 +1,14 @@
 import logging
 from collections import OrderedDict
 
+
 class userSettings(object):
     availableSettings = ["pitchValue", "unvoicedThreshold", "windowWidth",
-        "normalizeUnvoicedRMS", "normalizeUnvoicedRMS", "includeExplicitStopFrame",
-        "preEmphasis", "preEmphasisAlpha", "overridePitch", "pitchOffset",
-        "minimumPitchInHZ", "maximumPitchInHZ", "frameRate",
-        "subMultipleThreshold", "outputFormat", "rmsLimit", "tablesVariant"]
+        "normalizeUnvoicedRMS", "normalizeUnvoicedRMS",
+        "includeExplicitStopFrame", "preEmphasis", "preEmphasisAlpha",
+        "overridePitch", "pitchOffset", "minimumPitchInHZ", "maximumPitchInHZ",
+        "frameRate", "subMultipleThreshold", "outputFormat", "rmsLimit",
+        "tablesVariant"]
     pitchValue = 0
     unvoicedThreshold = 0.3
     windowWidth = 2
@@ -32,8 +34,8 @@ class userSettings(object):
     def import_from_dict(self, input_dict):
         error_list = []
         for key in input_dict:
-            if key=='pitchRange':
-                (self.minimumPitchInHZ, self.maximumPitchInHZ) = [ int(x) for x in input_dict[key].split(",") ]
+            if key == 'pitchRange':
+                (self.minimumPitchInHZ, self.maximumPitchInHZ) = [int(x) for x in input_dict[key].split(",")]
             else:
                 try:
                     self.__setattr__(key, type(self.__getattribute__(key))(input_dict[key]))
@@ -54,4 +56,3 @@ class userSettings(object):
 
 
 settings = userSettings()
-

@@ -1,23 +1,25 @@
 from pywizard.tools import BitHelpers
 from pywizard.HexConverter import HexConverter
-from collections import namedtuple
 import logging
 
-class BitPacker(object):
 
+class BitPacker(object):
     @classmethod
     def raw_stream(cls, processor):
         frameData = processor.frames
-        parametersList = [ x.parameters() for x in frameData ]
-        raw_data = FrameDataBinaryEncoder.process(processor.codingTable, parametersList)
+        parametersList = [x.parameters() for x in frameData]
+        raw_data = FrameDataBinaryEncoder.process(processor.codingTable,
+                                                  parametersList)
         return HexConverter.preprocess(raw_data)
 
     @classmethod
     def pack(cls, processor):
         frameData = processor.frames
-        parametersList = [ x.parameters() for x in frameData ]
-        raw_data = FrameDataBinaryEncoder.process(processor.codingTable, parametersList)
+        parametersList = [x.parameters() for x in frameData]
+        raw_data = FrameDataBinaryEncoder.process(processor.codingTable,
+                                                  parametersList)
         return HexConverter.process(raw_data)
+
 
 class FrameDataBinaryEncoder(object):
     @classmethod

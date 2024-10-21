@@ -28,7 +28,7 @@ class RMSNormalizer(object):
         >>> reflector.rms == ct.rms[3]
         True
         """
-        maximum = max( [ x.rms for x in frameData if x.isVoiced() == Voiced ] )
+        maximum = max([x.rms for x in frameData if x.isVoiced() == Voiced])
 
         if maximum <= 0:
             return
@@ -61,4 +61,3 @@ class RMSNormalizer(object):
     @classmethod
     def unvoicedMultiplier(cls):
         return settings.unvoicedRMSMultiplier
-

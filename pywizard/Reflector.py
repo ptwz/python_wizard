@@ -1,6 +1,7 @@
 import numpy as np
 from pywizard.userSettings import settings
 
+
 class Reflector(object):
     """
     Implements the reflector parameter guessing for the LPC
@@ -27,28 +28,28 @@ class Reflector(object):
         self.unvoicedThreshold = settings.unvoicedThreshold
         self.codingTable = codingTable
         if (k is None):
-            assert(rms is None)
-            assert(limitRMS is None)
+            assert rms is None
+            assert limitRMS is None
             self.limitRMS = False
-            self.ks = [0] * self.kNumberOfKParameters;
+            self.ks = [0] * self.kNumberOfKParameters
         else:
-            assert(rms is not None)
-            assert(limitRMS is not None)
+            assert rms is not None
+            assert limitRMS is not None
             self._rms = rms
             self.ks = k
             self.limitRMS = limitRMS
 
     @classmethod
     def formattedRMS(cls, rms, numberOfSamples):
-        return np.sqrt( rms / numberOfSamples) * ( 1 << 15 )
+        return np.sqrt(rms / numberOfSamples) * (1 << 15)
 
     @classmethod
     def translateCoefficients(cls, codingTable, r, numberOfSamples):
         '''Leroux Guegen algorithm for finding K's'''
 
-        k = [0.0] * 11;
-        b = [0.0] * 11;
-        d = [0.0] * 12;
+        k = [0.0] * 11
+        b = [0.0] * 11
+        d = [0.0] * 12
 
         k[1] = -r[1] / r[0]
         d[1] = r[1]
@@ -66,14 +67,13 @@ class Reflector(object):
             k[i] = -y / d[i]
             d[i + 1] = d[i] + (k[i] * y)
             d[i] = b[i]
-        rms = cls.formattedRMS( d[11], numberOfSamples )
-        return cls(codingTable, k=k, rms=rms, limitRMS=True )
-
+        rms = cls.formattedRMS(d[11], numberOfSamples)
+        return cls(codingTable, k=k, rms=rms, limitRMS=True)
 
     @property
     def rms(self):
         if self.limitRMS and self._rms >= self.codingTable.rms[self.codingTable.kStopFrameIndex - 1]:
-            return self.codingTable.rms[CodingTable.kStopFrameIndex - 1]
+            return self.codingTable.rms[self.codingTable.kStopFrameIndex - 1]
         else:
             return self._rms
 
@@ -86,4 +86,3 @@ class Reflector(object):
 
     def isUnvoiced(self):
         return self.ks[1] >= self.unvoicedThreshold
-

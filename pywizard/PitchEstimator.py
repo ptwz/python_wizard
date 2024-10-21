@@ -1,7 +1,7 @@
-from scipy import signal
 from pywizard.userSettings import settings
 import logging
 import numpy as np
+
 
 class PitchEstimator(object):
     @classmethod
@@ -15,20 +15,21 @@ class PitchEstimator(object):
 
     def isOutOfRange(self):
         x = self.bestPeriod()
-        return ( (self._normalizedCoefficients[x] < self._normalizedCoefficients[x-1])
-                 and
-                 (self._normalizedCoefficients[x] < self._normalizedCoefficients[x+1]) )
+        return ((self._normalizedCoefficients[x] < self._normalizedCoefficients[x-1])
+                and
+                (self._normalizedCoefficients[x] < self._normalizedCoefficients[x+1])
+                )
 
     def interpolated(self):
         bestPeriod = int(self.bestPeriod())
         middle = self._normalizedCoefficients[bestPeriod]
         left = self._normalizedCoefficients[bestPeriod - 1]
-        right  = self._normalizedCoefficients[bestPeriod + 1]
+        right = self._normalizedCoefficients[bestPeriod + 1]
 
-        if ( (2*middle - left - right) == 0):
+        if (2*middle - left - right) == 0:
             return bestPeriod
         else:
-            return bestPeriod + .5 * ( right - left) / (2 * middle - left - right)
+            return bestPeriod + .5 * (right - left) / (2 * middle - left - right)
 
     def estimate(self):
         bestPeriod = int(self.bestPeriod())
@@ -43,12 +44,12 @@ class PitchEstimator(object):
             subMultiplesAreStrong = True
             for i in range(0, int(maximumMultiple)):
                 logging.debug("estimate={} maximumMultiple={}".format(estimate, maximumMultiple))
-                subMultiplePeriod = int( np.floor( (i+1) * estimate / maximumMultiple + .5) )
+                subMultiplePeriod = int(np.floor((i+1) * estimate / maximumMultiple + .5))
                 try:
                     curr = self._normalizedCoefficients[subMultiplePeriod]
                 except IndexError:
                     curr = None
-                if (curr is not None) and ( curr < settings.subMultipleThreshold * self._normalizedCoefficients[bestPeriod]):
+                if (curr is not None) and (curr < settings.subMultipleThreshold * self._normalizedCoefficients[bestPeriod]):
                     subMultiplesAreStrong = False
             if subMultiplesAreStrong:
                 estimate /= maximumMultiple
@@ -95,5 +96,4 @@ def ClosestValueFinder(actual, table):
     if actual < table[0]:
         return 0
 
-    return table.index(min(table, key=lambda x:abs(x-actual)))
-
+    return table.index(min(table, key=lambda x: abs(x-actual)))

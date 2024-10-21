@@ -1,14 +1,13 @@
 from pywizard.userSettings import settings
 import numpy as np
 
+
 class PreEmphasizer(object):
     @classmethod
     def processBuffer(cls, buf):
         preEnergy = buf.energy()
 
         alpha = cls.alpha()
-        unmodifiedPreviousSample = buf.samples[0]
-        tempSample = None
 
         first_sample = buf.samples[0]
         buf.samples = buf.samples[1:] + (buf.samples[:-1] * alpha)
@@ -25,5 +24,3 @@ class PreEmphasizer(object):
         scale = np.sqrt(preEnergy / postEnergy)
 
         buf.samples *= scale
-
-

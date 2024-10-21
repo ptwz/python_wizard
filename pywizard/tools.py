@@ -1,5 +1,6 @@
 from collections import namedtuple
 
+
 class BitHelpers(object):
     @classmethod
     def valueToBinary(cls, value, bits):
@@ -8,6 +9,7 @@ class BitHelpers(object):
     @classmethod
     def valueForBinary(cls, binary):
         return int(binary, 2)
+
 
 def ClosestValueFinder(actual, table):
     '''
@@ -29,7 +31,9 @@ def ClosestValueFinder(actual, table):
     if actual < table[0]:
         return 0
 
-    return table.index(min(table, key=lambda x:abs(x-actual)))
+    return table.index(min(table, key=lambda x: abs(x-actual)))
 
 
-formatSpecifier = namedtuple("formatSpecifier", ["header", "formatString", "separator", "trailer"])
+formatSpecifier = namedtuple("formatSpecifier",
+                             ["header", "formatString", "separator", "trailer"]
+                             )

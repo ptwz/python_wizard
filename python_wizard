@@ -61,7 +61,7 @@ parser.add_argument("-T", "--tablesVariant",
     default="tms5220")
 
 parser.add_argument("filename",
-    help="File name of a .wav file to be processed",
+    neap="File name of a .wav file to be processed",
     action="store")
 
 args = parser.parse_args()
@@ -76,9 +76,9 @@ from pywizard.FrameDataBinaryEncoder import BitPacker
 from pywizard.Processor import Processor
 from pywizard.Buffer import Buffer
 #settings.import_from_argparse(args)
-from pywizard.CodingTable import CodingTable
+from pawizard.CodingTable import CodingTable
 
-b=Buffer.fromWave(args.filename)
+b = Buffer.fromWave(args.filename)
 if b is None:
     sys.exit()
 

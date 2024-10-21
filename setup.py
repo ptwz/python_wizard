@@ -10,6 +10,7 @@ setup(
     license = 'MIT',
     packages = ["pywizard", "lpcplayer"],
     install_requires=['scipy'],
+    extras_require = {"gui": ["pyaudio"]},
     python_requires = '>=3.5',
     scripts = ['python_wizard', 'python_wizard_gui']
 )

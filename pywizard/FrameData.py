@@ -1,8 +1,8 @@
 from pywizard.Reflector import Reflector
 from copy import deepcopy
 from pywizard.tools import ClosestValueFinder
-from pywizard.FrameDataBinaryEncoder import FrameDataBinaryEncoder
 from pywizard.userSettings import settings
+
 
 class FrameData(object):
     def stopFrame(self):
@@ -54,13 +54,13 @@ class FrameData(object):
                 ks = self.kParametersFrom(1, 4, translate=translate)
                 if ks is not None:
                     parameters.update(ks)
-                if ( parameters["kParameterPitch"] != 0  and (self.decodeFrame or self.reflector.isVoiced) ):
+                if parameters["kParameterPitch"] != 0 and (self.decodeFrame or self.reflector.isVoiced):
                     ks = self.kParametersFrom(5, 10, translate=translate)
                     parameters.update(ks)
 
         return deepcopy(parameters)
 
-    def setParameter(self, parameter, value = None, translatedValue = None):
+    def setParameter(self, parameter, value=None, translatedValue=None):
         self.parameters = None
 
         if parameter == 'kParameterGain':
@@ -105,15 +105,15 @@ class FrameData(object):
         else:
             return index
 
-    def parameterizedValueForPitch(self, pitch,translate):
+    def parameterizedValueForPitch(self, pitch, translate):
         index = 0
         if self.decodeFrame:
-            if pitch==0:
+            if pitch == 0:
                 return 0
             if settings.overridePitch:
                 index = int(settings.overridePitch)
-                return sefl.codingTable.pitch[index]
-        elif self.reflector.isUnvoiced() or pitch==0:
+                return self.codingTable.pitch[index]
+        elif self.reflector.isUnvoiced() or pitch == 0:
             return 0
 
         if settings.overridePitch:
@@ -125,8 +125,10 @@ class FrameData(object):
 
         index += offset
 
-        if index > 63: index = 63
-        if index < 0: index = 0
+        if index > 63:
+            index = 63
+        if index < 0:
+            index = 0
 
         if translate:
             return self.codingTable.pitch[index]
@@ -137,13 +139,15 @@ class FrameData(object):
         return bool(repeat)
 
     def kParametersFrom(self, frm, to, translate):
-        if self._stopFrame: return None
+        if self._stopFrame:
+            return None
         parameters = {}
         for k in range(frm, to+1):
             key = self.parameterKeyForK(k)
-            parameters[key] = self.parameterizedValueForK(self.reflector.ks[k], bin_no=k, translate=translate)
+            parameters[key] = self.parameterizedValueForK(self.reflector.ks[k],
+                                                          bin_no=k,
+                                                          translate=translate)
         return deepcopy(parameters)
 
     def parameterKeyForK(self, k):
         return "kParameterK{}".format(int(k))
-
